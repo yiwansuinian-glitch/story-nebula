@@ -903,27 +903,34 @@
 
         for (let i = 0; i < count; i += 1) {
           const t = Math.random();
-          const core = i < count * 0.26;
+          const core = i < count * 0.18;
           const interArm = !core && i % 8 === 0;
           const arm = i % 4;
-          const radius = core ? Math.pow(Math.random(), 0.42) * 920 : 250 + Math.pow(t, 0.74) * rand(1050, 2950);
-          const spiral = Math.log(radius / 190) * 0.78 + radius * 0.00046;
+          const radius = core ? Math.pow(Math.random(), 0.56) * 1240 : 95 + Math.pow(t, 0.78) * rand(1220, 3150);
+          const spiral = Math.log(Math.max(radius, 120) / 160) * 0.82 + radius * 0.00042;
           const armAngle = arm * Math.PI * 0.5;
           const cloud = (rand(-1, 1) + rand(-1, 1) + rand(-1, 1)) / 3;
-          const clump = Math.sin(t * Math.PI * 5 + arm * 1.7) * 0.09;
-          const angle = core ? rand(0, Math.PI * 2) : interArm ? rand(0, Math.PI * 2) : armAngle + spiral + clump + cloud * (0.92 + t * 0.56);
-          const spread = core ? rand(-230, 230) : interArm ? rand(-520, 520) : cloud * (780 + t * 1050) + rand(-240, 240);
+          const clump = Math.sin(t * Math.PI * 4.2 + arm * 1.9) * 0.12;
+          const angle = core ? rand(0, Math.PI * 2) : interArm ? rand(0, Math.PI * 2) : armAngle + spiral + clump + cloud * (0.82 + t * 0.62);
+          const innerBlend = clamp(1 - radius / 760, 0, 1);
+          const spread = core
+            ? rand(-300, 300) * (0.75 + radius / 1500)
+            : interArm
+              ? rand(-560, 560)
+              : cloud * (720 + t * 1180) + rand(-260, 260) + rand(-180, 180) * innerBlend;
           const x = Math.cos(angle) * radius + Math.cos(angle + Math.PI / 2) * spread;
-          const z = Math.sin(angle) * radius * 0.66 + Math.sin(angle + Math.PI / 2) * spread;
-          const y = core ? rand(-130, 130) : rand(-90, 90) * (0.24 + t * 0.96);
-          const warmth = core ? clamp(1 - radius / 980, 0, 1) : 0;
+          const z = Math.sin(angle) * radius * 0.68 + Math.sin(angle + Math.PI / 2) * spread;
+          const y = core ? rand(-190, 190) * (0.45 + radius / 1500) : rand(-104, 104) * (0.3 + t * 1.02);
+          const warmth = core ? clamp(1 - radius / 980, 0, 1) : innerBlend * 0.28;
           state.stars.push({
             x, y, z,
-            size: core ? rand(0.86, 2.45 + warmth * 0.9) : rand(0.66, i % 29 === 0 ? 2.85 : 1.78),
-            alpha: core ? rand(0.5, 1) : interArm ? rand(0.18, 0.56) : rand(0.36, 1),
-            color: core
-              ? warmth > 0.55 ? "#fff3c7" : warmth > 0.24 ? "#f4e4ba" : "#d9efff"
-              : (i % 53 === 0 ? "#f6a6c8" : colorForIndex(i, i % 37 === 0)),
+            size: core ? rand(0.72, 2.08 + warmth * 1.18) : rand(0.66, i % 29 === 0 ? 2.85 : 1.78),
+            alpha: core ? rand(0.36, 0.92) + warmth * 0.16 : interArm ? rand(0.18, 0.56) : rand(0.38, 1),
+            color: warmth > 0.68
+              ? "#fff3c7"
+              : warmth > 0.36
+                ? "#f4e4ba"
+                : (i % 53 === 0 ? "#f6a6c8" : colorForIndex(i, i % 37 === 0)),
             phase: rand(0, Math.PI * 2),
             twinkle: rand(0.0009, 0.0046),
             sparkle: rand(0.12, 0.52)
@@ -1078,10 +1085,10 @@
         const isCore = dot.story.id === coreStory.id;
         const pulse = 1 + Math.sin(now * dot.twinkle + dot.phase) * (isCore ? 0.16 : 0.13);
         const body = isCore
-          ? clamp(dot.size * screen.scale * 6.8, 18, 42)
+          ? clamp(dot.size * screen.scale * 7.8, 24, 58)
           : clamp(dot.size * screen.scale * 4.6, dot.story.favorite ? 3.2 : 2.4, dot.story.favorite ? 8.8 : 6.2);
         const glow = body * (hot ? 4.6 : 2.7);
-        drawGlow(screen.x, screen.y, isCore ? glow * 3.8 : glow, dot.color, isCore ? 0.56 : hot ? 0.34 : 0.18);
+        drawGlow(screen.x, screen.y, isCore ? glow * 4.8 : glow, dot.color, isCore ? 0.62 : hot ? 0.34 : 0.18);
         ctx.save();
         ctx.globalAlpha = hot ? 1 : 0.9;
         ctx.fillStyle = dot.color;
@@ -1094,12 +1101,13 @@
         ctx.arc(screen.x - body * 0.22, screen.y - body * 0.22, Math.max(1.1, body * 0.34), 0, Math.PI * 2);
         ctx.fill();
         if (isCore) {
-          drawGlow(screen.x, screen.y, body * 7.5, "#fff3c7", 0.16);
-          ctx.globalAlpha = 0.18 + Math.sin(now * 0.0011) * 0.04;
+          drawGlow(screen.x, screen.y, body * 10.8, "#fff3c7", 0.2);
+          drawGlow(screen.x, screen.y, body * 18, "#d9efff", 0.055);
+          ctx.globalAlpha = 0.14 + Math.sin(now * 0.0011) * 0.035;
           ctx.strokeStyle = "#fff3c7";
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.arc(screen.x, screen.y, body * 2.8, 0, Math.PI * 2);
+          ctx.arc(screen.x, screen.y, body * 3.15, 0, Math.PI * 2);
           ctx.stroke();
         }
         ctx.restore();
