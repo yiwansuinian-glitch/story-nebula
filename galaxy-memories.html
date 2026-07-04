@@ -245,9 +245,9 @@
     .star-card {
       position: fixed;
       z-index: 4;
-      min-width: 190px;
-      max-width: 280px;
-      padding: 14px 15px;
+      min-width: 154px;
+      max-width: 220px;
+      padding: 10px 12px;
       border: 1px solid rgba(216, 200, 154, 0.22);
       border-radius: 8px;
       color: var(--ink);
@@ -258,7 +258,7 @@
       transform: translateY(10px);
       pointer-events: none;
       transition: opacity 420ms ease, transform 420ms ease;
-      font: 12px/1.6 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font: 11px/1.55 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .star-card.show {
@@ -269,14 +269,14 @@
 
     .star-card .date {
       color: var(--ember);
-      font-size: 12px;
+      font-size: 11px;
       font-variant-numeric: tabular-nums;
     }
 
     .star-card h2 {
-      margin: 7px 0 8px;
+      margin: 5px 0 6px;
       color: var(--ink-bright);
-      font: 500 22px/1.12 Georgia, "Times New Roman", "Songti SC", serif;
+      font: 500 18px/1.12 Georgia, "Times New Roman", "Songti SC", serif;
     }
 
     .star-card p {
@@ -612,7 +612,7 @@
       </nav>
     </header>
 
-    <p class="hint">拖动鼠标环顾星云，WASD 穿行。靠近星体会显示日期，第一次点击锁定故事，第二次点击阅读。</p>
+    <p class="hint">拖动鼠标环顾星云，W/S 沿视线前后飞行，A/D 侧移。滚轮调整飞行速度，靠近星体会显示故事日期。</p>
     <footer class="footer">
       <span>yiwansuinian · GitHub Pages · Three.js</span>
       <span class="keys"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span><span class="key">Drag</span></span>
@@ -746,6 +746,7 @@
 
     const localKey = "story-cloud-local-v3";
     const speedKey = "story-cloud-speed-v3";
+    const moveSpeedKey = "story-cloud-flight-speed-v1";
     const palette = [0xd8c89a, 0xd8835f, 0xc9b28b, 0xf1dfb2, 0xe1a77f];
     const quality = getQualityProfile();
     const samples = [
@@ -777,7 +778,8 @@
       lastMouse: { x: 0, y: 0 },
       yaw: 0,
       pitch: -0.12,
-      speed: Number(localStorage.getItem(speedKey) || 16) / 100
+      speed: Number(localStorage.getItem(speedKey) || 16) / 100,
+      flightSpeed: Number(localStorage.getItem(moveSpeedKey) || 1)
     };
 
     speedRange.value = String(Math.round(state.speed * 100));
@@ -801,6 +803,7 @@
 
     const tempVector = new THREE.Vector3();
     const clock = new THREE.Clock();
+    const particleTexture = makeParticleTexture();
 
     function getQualityProfile() {
       const coarse = window.matchMedia("(pointer: coarse)").matches;
@@ -920,7 +923,7 @@
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       return new THREE.Points(geometry, new THREE.PointsMaterial({
-        size, vertexColors: true, transparent: true, opacity, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
+        size, map: particleTexture, alphaTest: 0.02, vertexColors: true, transparent: true, opacity, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
       }));
     }
 
@@ -941,7 +944,7 @@
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       return new THREE.Points(geometry, new THREE.PointsMaterial({
-        size, vertexColors: true, transparent: true, opacity, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
+        size, map: particleTexture, alphaTest: 0.02, vertexColors: true, transparent: true, opacity, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
       }));
     }
 
@@ -965,7 +968,7 @@
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       return new THREE.Points(geometry, new THREE.PointsMaterial({
-        size: 1.9, vertexColors: true, transparent: true, opacity: 0.68, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
+        size: 1.9, map: particleTexture, alphaTest: 0.02, vertexColors: true, transparent: true, opacity: 0.68, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
       }));
     }
 
@@ -978,8 +981,8 @@
       const rgb = `${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}`;
       const gradient = context.createRadialGradient(64, 64, 0, 64, 64, 64);
       gradient.addColorStop(0, "rgba(255, 250, 218, 1)");
-      gradient.addColorStop(0.1, `rgba(${rgb}, ${favorite ? 0.8 : 0.56})`);
-      gradient.addColorStop(0.24, `rgba(${rgb}, ${favorite ? 0.14 : 0.07})`);
+      gradient.addColorStop(0.1, `rgba(${rgb}, ${favorite ? 0.95 : 0.72})`);
+      gradient.addColorStop(0.24, `rgba(${rgb}, ${favorite ? 0.2 : 0.1})`);
       gradient.addColorStop(1, `rgba(${rgb}, 0)`);
       context.fillStyle = gradient;
       context.fillRect(0, 0, 128, 128);
@@ -1149,8 +1152,8 @@
         connector.classList.remove("show");
         return;
       }
-      const cardX = Math.min(window.innerWidth - 306, Math.max(18, projected.x + 36));
-      const cardY = Math.min(window.innerHeight - 145, Math.max(86, projected.y - 36));
+      const cardX = Math.min(window.innerWidth - 238, Math.max(18, projected.x + 28));
+      const cardY = Math.min(window.innerHeight - 118, Math.max(86, projected.y - 30));
       starCard.style.left = `${cardX}px`;
       starCard.style.top = `${cardY}px`;
       connectorLine.setAttribute("x1", projected.x);
@@ -1197,11 +1200,9 @@
     }
 
     function updateCamera(delta) {
-      const speed = 520 * delta;
-      const forward = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
-      const right = new THREE.Vector3(1, 0, 0).applyEuler(camera.rotation);
-      forward.y = 0;
-      right.y = 0;
+      const speed = 520 * state.flightSpeed * delta;
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
       forward.normalize();
       right.normalize();
 
@@ -1365,6 +1366,7 @@
       renderer.domElement.addEventListener("pointermove", onPointerMove);
       renderer.domElement.addEventListener("pointerdown", onPointerDown);
       renderer.domElement.addEventListener("pointerup", onPointerUp);
+      renderer.domElement.addEventListener("wheel", onWheel, { passive: false });
       renderer.domElement.addEventListener("click", () => {
         if (state.dragMoved > 8) return;
         showStoryFromPointer();
@@ -1401,6 +1403,17 @@
       renderer.domElement.releasePointerCapture(event.pointerId);
     }
 
+    function onWheel(event) {
+      event.preventDefault();
+      const direction = event.deltaY < 0 ? 1 : -1;
+      state.flightSpeed = THREE.MathUtils.clamp(state.flightSpeed + direction * 0.16, 0.25, 3.2);
+      localStorage.setItem(moveSpeedKey, String(state.flightSpeed));
+      window.clearTimeout(onWheel.timer);
+      onWheel.timer = window.setTimeout(() => {
+        showToast(`飞行速度 ${state.flightSpeed.toFixed(1)}x`);
+      }, 80);
+    }
+
     function resize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -1417,3 +1430,18 @@
   </script>
 </body>
 </html>
+    function makeParticleTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 64;
+      const context = canvas.getContext("2d");
+      const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+      gradient.addColorStop(0.45, "rgba(255, 255, 255, 0.72)");
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 64, 64);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
