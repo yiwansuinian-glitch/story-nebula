@@ -762,9 +762,9 @@
         dragging: false,
         dragMoved: 0,
         lastMouse: { x: 0, y: 0 },
-        yaw: 0,
-        pitch: -0.05,
-        camera: { x: 0, y: 135, z: -1320 },
+        yaw: 0.16,
+        pitch: -0.42,
+        camera: { x: -450, y: 760, z: -1680 },
         spin: Number(localStorage.getItem(spinKey) || 42) / 100,
         flightSpeed: Number(localStorage.getItem(flightKey) || 70) / 100
       };
@@ -889,41 +889,44 @@
 
       function buildGalaxy() {
         const mobile = state.width < 760 || window.matchMedia("(pointer: coarse)").matches;
-        const count = mobile ? 4400 : 11800;
-        const dustCount = mobile ? 900 : 2600;
+        const count = mobile ? 7200 : 19000;
+        const dustCount = mobile ? 1600 : 4200;
         state.stars = [];
         state.dust = [];
 
         for (let i = 0; i < count; i += 1) {
           const t = Math.random();
-          const arm = i % 5;
-          const angle = arm * Math.PI * 0.4 + Math.pow(t, 0.72) * Math.PI * 9.2 + rand(-0.28, 0.28);
-          const radius = 80 + Math.pow(t, 0.62) * rand(420, 1780);
-          const spread = rand(-52, 52) * (1 + t);
+          const core = i < count * 0.16;
+          const arm = i % 4;
+          const radius = core ? Math.pow(Math.random(), 0.58) * 430 : 180 + Math.pow(t, 0.66) * rand(760, 2380);
+          const spiral = radius * 0.0066;
+          const armAngle = arm * Math.PI * 0.5;
+          const angle = core ? rand(0, Math.PI * 2) : armAngle + spiral + rand(-0.11, 0.11);
+          const spread = core ? rand(-105, 105) : rand(-18, 18) + Math.pow(t, 1.15) * rand(-76, 76);
           const x = Math.cos(angle) * radius + Math.cos(angle + Math.PI / 2) * spread;
-          const z = Math.sin(angle) * radius * 0.72 + Math.sin(angle + Math.PI / 2) * spread;
-          const y = rand(-90, 90) * (0.24 + t * 0.78);
+          const z = Math.sin(angle) * radius * 0.74 + Math.sin(angle + Math.PI / 2) * spread;
+          const y = core ? rand(-72, 72) : rand(-46, 46) * (0.2 + t * 0.9);
           state.stars.push({
             x, y, z,
-            size: rand(0.58, i % 31 === 0 ? 2.2 : 1.35),
-            alpha: rand(0.2, 0.92),
-            color: colorForIndex(i, i % 37 === 0),
+            size: core ? rand(0.82, 2.35) : rand(0.62, i % 29 === 0 ? 2.4 : 1.55),
+            alpha: core ? rand(0.36, 0.98) : rand(0.28, 1),
+            color: core ? (i % 5 === 0 ? "#fff3c7" : "#f1dfb2") : colorForIndex(i, i % 37 === 0),
             phase: rand(0, Math.PI * 2),
             twinkle: rand(0.0007, 0.0034)
           });
         }
 
         for (let i = 0; i < dustCount; i += 1) {
-          const shell = rand(900, 3600);
+          const shell = rand(1600, 5600);
           const theta = rand(0, Math.PI * 2);
           const phi = Math.acos(rand(-1, 1));
           state.dust.push({
             x: Math.sin(phi) * Math.cos(theta) * shell,
             y: Math.cos(phi) * shell * 0.64,
             z: Math.sin(phi) * Math.sin(theta) * shell,
-            size: rand(0.45, 1.15),
-            alpha: rand(0.14, 0.5),
-            color: i % 19 === 0 ? "#d8835f" : colorForIndex(i + 4),
+            size: rand(0.5, i % 41 === 0 ? 1.55 : 1.05),
+            alpha: rand(0.22, 0.74),
+            color: i % 23 === 0 ? "#d8835f" : i % 11 === 0 ? "#fff3c7" : colorForIndex(i + 4),
             phase: rand(0, Math.PI * 2),
             twinkle: rand(0.0004, 0.0024)
           });
@@ -1032,12 +1035,18 @@
 
       function drawPoint(screen, item, now, boost = 1) {
         const pulse = 0.78 + Math.sin(now * item.twinkle + item.phase) * 0.22;
-        const r = clamp(item.size * screen.scale * 2.4 * boost, 0.45, 7);
-        ctx.globalAlpha = clamp(item.alpha * pulse * boost, 0.08, 1);
+        const r = clamp(item.size * screen.scale * 3.15 * boost, 0.58, 8);
+        ctx.globalAlpha = clamp(item.alpha * pulse * boost * 1.18, 0.12, 1);
         ctx.fillStyle = item.color;
         ctx.beginPath();
         ctx.arc(screen.x, screen.y, r, 0, Math.PI * 2);
         ctx.fill();
+        if (r > 1.45) {
+          ctx.globalAlpha = clamp(item.alpha * pulse * 0.24, 0.06, 0.28);
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, r * 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       function drawStoryDot(dot, screen, now, hot) {
@@ -1112,11 +1121,14 @@
         state.comets.push({
           x,
           y,
+          startX: x,
+          startY: y,
           vx: Math.cos(angle) * rand(360, 620),
           vy: Math.sin(angle) * rand(360, 620),
           length,
           life: 0,
-          ttl: rand(0.55, 0.9),
+          hold: rand(0.18, 0.28),
+          ttl: rand(0.74, 1.08),
           color: "#fff8df"
         });
       }
@@ -1126,11 +1138,25 @@
         ctx.globalCompositeOperation = "lighter";
         state.comets = state.comets.filter((comet) => {
           comet.life += delta;
+          const warm = Math.min(1, comet.life / comet.hold);
+          const starPulse = 1 + Math.sin(comet.life * 34) * 0.18;
+          if (comet.life < comet.hold) {
+            const glow = 10 + warm * 18;
+            drawGlow(comet.startX, comet.startY, glow, comet.color, 0.26 + warm * 0.18);
+            ctx.globalAlpha = 0.78 + warm * 0.22;
+            ctx.fillStyle = comet.color;
+            ctx.beginPath();
+            ctx.arc(comet.startX, comet.startY, (2.4 + warm * 2.4) * starPulse, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            return true;
+          }
+
           comet.x += comet.vx * delta;
           comet.y += comet.vy * delta;
-          const t = comet.life / comet.ttl;
+          const t = (comet.life - comet.hold) / comet.ttl;
           if (t >= 1) return false;
-          const alpha = (1 - t) * 0.78;
+          const alpha = (1 - t) * 0.84;
           const tailX = comet.x - comet.vx / Math.hypot(comet.vx, comet.vy) * comet.length;
           const tailY = comet.y - comet.vy / Math.hypot(comet.vx, comet.vy) * comet.length;
           const gradient = ctx.createLinearGradient(comet.x, comet.y, tailX, tailY);
@@ -1145,7 +1171,7 @@
           ctx.globalAlpha = alpha;
           ctx.fillStyle = comet.color;
           ctx.beginPath();
-          ctx.arc(comet.x, comet.y, 2.2, 0, Math.PI * 2);
+          ctx.arc(comet.x, comet.y, 2.8, 0, Math.PI * 2);
           ctx.fill();
           ctx.globalAlpha = 1;
           return true;
@@ -1187,8 +1213,8 @@
         updateMovement(delta);
 
         const bg = ctx.createRadialGradient(state.width * 0.5, state.height * 0.45, 0, state.width * 0.5, state.height * 0.5, Math.max(state.width, state.height) * 0.78);
-        bg.addColorStop(0, "#16182b");
-        bg.addColorStop(0.46, "#0a0b16");
+        bg.addColorStop(0, "#1d2138");
+        bg.addColorStop(0.42, "#0d1020");
         bg.addColorStop(1, "#05060b");
         ctx.globalAlpha = 1;
         ctx.fillStyle = bg;
@@ -1391,9 +1417,9 @@
       }
 
       function resetView() {
-        state.camera = { x: 0, y: 135, z: -1320 };
-        state.yaw = 0;
-        state.pitch = -0.05;
+        state.camera = { x: -450, y: 760, z: -1680 };
+        state.yaw = 0.16;
+        state.pitch = -0.42;
         state.selectedId = null;
         showToast("视角已重置。");
       }
