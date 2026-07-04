@@ -195,6 +195,16 @@
       white-space: nowrap;
     }
 
+    body.ui-hidden .overlay,
+    body.ui-hidden .star-card,
+    body.ui-hidden .connector,
+    body.ui-hidden .drawer,
+    body.ui-hidden .modal,
+    body.ui-hidden .toast {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
     input[type="range"] {
       width: 100%;
       accent-color: var(--ember);
@@ -604,6 +614,10 @@
         <span id="flightReadout">飞行速度 ×0.000 · 0 单位/秒</span>
         <input id="flightRange" type="range" min="20" max="420" value="115" aria-label="飞行速度">
       </div>
+      <div class="speed-row">
+        <span id="coreHaloReadout">核心光晕 ×0.650</span>
+        <input id="coreHaloRange" type="range" min="35" max="130" value="65" aria-label="中心恒星光晕大小">
+      </div>
     </section>
 
     <div class="byline">yiwansuinian · Canvas 3D</div>
@@ -713,15 +727,33 @@
       const storyFavorite = document.querySelector("#storyFavorite");
       const spinRange = document.querySelector("#spinRange");
       const flightRange = document.querySelector("#flightRange");
+      const coreHaloRange = document.querySelector("#coreHaloRange");
       const spinReadout = document.querySelector("#spinReadout");
       const flightReadout = document.querySelector("#flightReadout");
+      const coreHaloReadout = document.querySelector("#coreHaloReadout");
       const linkButton = document.querySelector("#linkButton");
       const toast = document.querySelector("#toast");
 
       const localKey = "story-cloud-local-v5";
       const spinKey = "story-cloud-spin-v5";
       const flightKey = "story-cloud-flight-v5";
+      const coreHaloKey = "story-cloud-core-halo-v1";
       const palette = ["#d8c89a", "#fff3c7", "#d8835f", "#c9b28b", "#f1dfb2", "#9fb7d6", "#b8e986", "#f6a6c8", "#a6e3ff", "#c7a6ff"];
+      const distantObjects = [
+        { type: "sombrero", x: -4200, y: 1200, z: 5200, size: 132, tilt: -0.18, alpha: 0.36 },
+        { type: "whirlpool", x: 5400, y: -600, z: 4700, size: 116, tilt: 0.44, alpha: 0.34 },
+        { type: "andromeda", x: -6400, y: -900, z: -4200, size: 168, tilt: 0.08, alpha: 0.3 },
+        { type: "pinwheel", x: 3900, y: 1700, z: -5600, size: 124, tilt: -0.52, alpha: 0.33 },
+        { type: "antennae", x: -1800, y: 2600, z: -6500, size: 122, tilt: 0.28, alpha: 0.3 },
+        { type: "pillars", x: 7200, y: 900, z: 800, size: 118, tilt: 0.06, alpha: 0.26 },
+        { type: "orion", x: -7600, y: 700, z: 900, size: 148, tilt: -0.24, alpha: 0.27 },
+        { type: "trifid", x: 800, y: -2400, z: 7200, size: 116, tilt: 0.12, alpha: 0.28 },
+        { type: "rosette", x: 6800, y: -1800, z: -1500, size: 132, tilt: 0.2, alpha: 0.3 },
+        { type: "horsehead", x: -4800, y: 2300, z: -3600, size: 118, tilt: -0.08, alpha: 0.24 },
+        { type: "crab", x: 2300, y: -2700, z: -6900, size: 112, tilt: 0.36, alpha: 0.29 },
+        { type: "veil", x: -7000, y: -1700, z: 3100, size: 156, tilt: -0.48, alpha: 0.24 },
+        { type: "helix", x: 6100, y: 2600, z: 3300, size: 132, tilt: 0.04, alpha: 0.31 }
+      ];
       const coreStory = {
         id: "story-core-star",
         source: "core",
@@ -760,9 +792,11 @@
         stories: [],
         storyDots: [],
         comets: [],
+        backgroundObjects: [],
         hoverId: null,
         selectedId: null,
         linksVisible: false,
+        interfaceHidden: false,
         pointer: { x: -9999, y: -9999 },
         keys: new Set(),
         dragging: false,
@@ -772,11 +806,13 @@
         pitch: -0.42,
         camera: { x: -450, y: 760, z: -1680 },
         spin: Number(localStorage.getItem(spinKey) || 42) / 100,
-        flightSpeed: Number(localStorage.getItem(flightKey) || 115) / 100
+        flightSpeed: Number(localStorage.getItem(flightKey) || 115) / 100,
+        coreHalo: Number(localStorage.getItem(coreHaloKey) || 65) / 100
       };
 
       spinRange.value = String(Math.round(state.spin * 100));
       flightRange.value = String(Math.round(state.flightSpeed * 100));
+      coreHaloRange.value = String(Math.round(state.coreHalo * 100));
       storyDate.value = today();
       updateSpeedReadouts();
 
@@ -811,6 +847,7 @@
         const flightUnits = Math.round(380 + state.flightSpeed * 1880);
         spinReadout.textContent = `星云速度 ×${state.spin.toFixed(3)} · ${nebulaUnits} 单位/秒`;
         flightReadout.textContent = `飞行速度 ×${state.flightSpeed.toFixed(3)} · ${flightUnits} 单位/秒`;
+        coreHaloReadout.textContent = `核心光晕 ×${state.coreHalo.toFixed(3)}`;
       }
 
       function colorForIndex(index, favorite = false) {
@@ -900,6 +937,7 @@
         const dustCount = mobile ? 2200 : 6400;
         state.stars = [];
         state.dust = [];
+        state.backgroundObjects = mobile ? distantObjects.filter((_, index) => index % 2 === 0) : distantObjects;
 
         for (let i = 0; i < count; i += 1) {
           const t = Math.random();
@@ -1081,6 +1119,167 @@
         }
       }
 
+      function fillSoftEllipse(x, y, w, h, color, alpha, rotation = 0) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.scale(w, h);
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.42, color);
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function strokeNebulaRibbon(x, y, size, color, alpha, rotation, seed) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.strokeStyle = color;
+        ctx.lineCap = "round";
+        ctx.lineWidth = Math.max(1, size * 0.035);
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        for (let i = 0; i < 18; i += 1) {
+          const t = i / 17;
+          const px = (t - 0.5) * size * 1.5;
+          const py = Math.sin(t * Math.PI * 2.4 + seed) * size * 0.16 + Math.sin(t * Math.PI * 7 + seed) * size * 0.05;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawSpiralBackground(x, y, size, rotation, alpha, colors, loose = false) {
+        fillSoftEllipse(x, y, size * 0.34, size * 0.28, colors.core, alpha * 0.8, rotation);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.globalCompositeOperation = "lighter";
+        for (let arm = 0; arm < 2; arm += 1) {
+          ctx.strokeStyle = colors.arm[arm % colors.arm.length];
+          ctx.lineWidth = Math.max(1, size * (loose ? 0.036 : 0.026));
+          ctx.globalAlpha = alpha * (loose ? 0.56 : 0.66);
+          ctx.beginPath();
+          for (let i = 0; i < 42; i += 1) {
+            const t = i / 41;
+            const angle = arm * Math.PI + t * Math.PI * (loose ? 1.15 : 1.75);
+            const r = size * (0.12 + t * (loose ? 0.56 : 0.48));
+            const px = Math.cos(angle) * r;
+            const py = Math.sin(angle) * r * (loose ? 0.72 : 0.82);
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawDistantObject(item, now) {
+        const screen = project(item, 0);
+        if (!screen) return;
+        const size = clamp(item.size * screen.scale * 7.2, 28, 190);
+        if (screen.x < -size * 2 || screen.x > state.width + size * 2 || screen.y < -size * 2 || screen.y > state.height + size * 2) return;
+
+        const x = screen.x;
+        const y = screen.y;
+        const breathe = 0.92 + Math.sin(now * 0.00035 + item.x * 0.001) * 0.08;
+        const alpha = item.alpha * breathe;
+        const rot = item.tilt + Math.sin(now * 0.00008 + item.z * 0.001) * 0.03;
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        if (item.type === "sombrero") {
+          fillSoftEllipse(x, y, size * 0.72, size * 0.18, "#f6df9c", alpha * 0.62, rot);
+          fillSoftEllipse(x, y, size * 0.24, size * 0.16, "#fff3c7", alpha * 0.72, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.globalAlpha = alpha * 0.5;
+          ctx.strokeStyle = "rgba(3,4,8,0.9)";
+          ctx.lineWidth = Math.max(2, size * 0.035);
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.62, size * 0.02);
+          ctx.quadraticCurveTo(0, size * 0.08, size * 0.62, -size * 0.01);
+          ctx.stroke();
+        } else if (item.type === "whirlpool") {
+          drawSpiralBackground(x, y, size, rot, alpha, { core: "#fff3c7", arm: ["#d9efff", "#9fb7ff"] });
+        } else if (item.type === "andromeda") {
+          fillSoftEllipse(x, y, size * 0.86, size * 0.24, "#b9dcff", alpha * 0.34, rot);
+          fillSoftEllipse(x, y, size * 0.48, size * 0.15, "#f4e4ba", alpha * 0.62, rot);
+          fillSoftEllipse(x, y, size * 0.16, size * 0.09, "#fff3c7", alpha * 0.84, rot);
+        } else if (item.type === "pinwheel") {
+          drawSpiralBackground(x, y, size, rot, alpha, { core: "#fff3c7", arm: ["#8fd3ff", "#f6a6c8"] }, true);
+        } else if (item.type === "antennae") {
+          fillSoftEllipse(x - size * 0.14, y, size * 0.24, size * 0.2, "#fff3c7", alpha * 0.52, rot);
+          fillSoftEllipse(x + size * 0.14, y + size * 0.04, size * 0.24, size * 0.2, "#d9efff", alpha * 0.48, rot);
+          strokeNebulaRibbon(x, y - size * 0.06, size, "#d9efff", alpha * 0.44, rot - 0.55, 0.6);
+          strokeNebulaRibbon(x, y + size * 0.08, size, "#f6a6c8", alpha * 0.38, rot + 0.58, 1.8);
+        } else if (item.type === "pillars") {
+          fillSoftEllipse(x, y, size * 0.58, size * 0.5, "#5fb19a", alpha * 0.16, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          for (let i = -1; i <= 1; i += 1) {
+            const px = i * size * 0.14;
+            const h = size * (0.44 + (i + 1) * 0.05);
+            const grad = ctx.createLinearGradient(px, -h * 0.5, px, h * 0.5);
+            grad.addColorStop(0, "rgba(245,210,130,0.85)");
+            grad.addColorStop(1, "rgba(42,105,91,0)");
+            ctx.globalAlpha = alpha * 0.7;
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(px, 0, size * 0.055, h, 0.1 * i, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (item.type === "orion") {
+          fillSoftEllipse(x - size * 0.08, y, size * 0.42, size * 0.32, "#d8835f", alpha * 0.42, rot);
+          fillSoftEllipse(x + size * 0.12, y + size * 0.02, size * 0.34, size * 0.24, "#7bd8a2", alpha * 0.36, rot);
+          fillSoftEllipse(x, y, size * 0.18, size * 0.14, "#ffffff", alpha * 0.44, rot);
+        } else if (item.type === "trifid") {
+          fillSoftEllipse(x - size * 0.1, y, size * 0.28, size * 0.24, "#dd5f71", alpha * 0.42, rot);
+          fillSoftEllipse(x + size * 0.12, y, size * 0.26, size * 0.24, "#7aa6ff", alpha * 0.38, rot);
+          fillSoftEllipse(x, y + size * 0.11, size * 0.24, size * 0.2, "#f6a6c8", alpha * 0.36, rot);
+          strokeNebulaRibbon(x, y, size * 0.62, "rgba(1,2,8,0.86)", alpha * 0.62, rot + 0.22, 2.2);
+        } else if (item.type === "rosette") {
+          fillSoftEllipse(x, y, size * 0.46, size * 0.46, "#c9445a", alpha * 0.35, rot);
+          ctx.globalCompositeOperation = "source-over";
+          fillSoftEllipse(x, y, size * 0.18, size * 0.18, "#05060b", alpha * 0.7, rot);
+        } else if (item.type === "horsehead") {
+          fillSoftEllipse(x, y, size * 0.5, size * 0.34, "#c94c3f", alpha * 0.34, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.globalAlpha = alpha * 0.7;
+          ctx.fillStyle = "rgba(1,2,7,0.92)";
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.04, size * 0.22);
+          ctx.quadraticCurveTo(-size * 0.22, size * 0.02, -size * 0.08, -size * 0.26);
+          ctx.quadraticCurveTo(size * 0.16, -size * 0.18, size * 0.1, size * 0.22);
+          ctx.closePath();
+          ctx.fill();
+        } else if (item.type === "crab") {
+          fillSoftEllipse(x, y, size * 0.42, size * 0.3, "#f4c465", alpha * 0.35, rot);
+          for (let i = 0; i < 7; i += 1) {
+            strokeNebulaRibbon(x, y, size * (0.45 + i * 0.05), i % 2 ? "#d8835f" : "#9fdcff", alpha * 0.22, rot + i * 0.44, i);
+          }
+        } else if (item.type === "veil") {
+          strokeNebulaRibbon(x, y, size * 1.2, "#8fd3ff", alpha * 0.42, rot, 0.2);
+          strokeNebulaRibbon(x, y + size * 0.08, size * 1.08, "#f6a6c8", alpha * 0.32, rot + 0.08, 1.1);
+          strokeNebulaRibbon(x, y - size * 0.06, size * 1.0, "#b8e986", alpha * 0.22, rot - 0.08, 2.0);
+        } else if (item.type === "helix") {
+          fillSoftEllipse(x, y, size * 0.42, size * 0.36, "#7ab8ff", alpha * 0.42, rot);
+          fillSoftEllipse(x, y, size * 0.18, size * 0.14, "#05060b", alpha * 0.76, rot);
+          fillSoftEllipse(x, y, size * 0.08, size * 0.06, "#fff3c7", alpha * 0.5, rot);
+        }
+        ctx.restore();
+      }
+
       function drawStoryDot(dot, screen, now, hot) {
         const isCore = dot.story.id === coreStory.id;
         const pulse = 1 + Math.sin(now * dot.twinkle + dot.phase) * (isCore ? 0.16 : 0.13);
@@ -1088,7 +1287,7 @@
           ? clamp(dot.size * screen.scale * 7.8, 24, 58)
           : clamp(dot.size * screen.scale * 4.6, dot.story.favorite ? 3.2 : 2.4, dot.story.favorite ? 8.8 : 6.2);
         const glow = body * (hot ? 4.6 : 2.7);
-        drawGlow(screen.x, screen.y, isCore ? glow * 4.8 : glow, dot.color, isCore ? 0.62 : hot ? 0.34 : 0.18);
+        drawGlow(screen.x, screen.y, isCore ? glow * 4.8 * state.coreHalo : glow, dot.color, isCore ? 0.62 * state.coreHalo : hot ? 0.34 : 0.18);
         ctx.save();
         ctx.globalAlpha = hot ? 1 : 0.9;
         ctx.fillStyle = dot.color;
@@ -1101,8 +1300,8 @@
         ctx.arc(screen.x - body * 0.22, screen.y - body * 0.22, Math.max(1.1, body * 0.34), 0, Math.PI * 2);
         ctx.fill();
         if (isCore) {
-          drawGlow(screen.x, screen.y, body * 10.8, "#fff3c7", 0.2);
-          drawGlow(screen.x, screen.y, body * 18, "#d9efff", 0.055);
+          drawGlow(screen.x, screen.y, body * 10.8 * state.coreHalo, "#fff3c7", 0.2 * state.coreHalo);
+          drawGlow(screen.x, screen.y, body * 18 * state.coreHalo, "#d9efff", 0.055 * state.coreHalo);
           ctx.globalAlpha = 0.14 + Math.sin(now * 0.0011) * 0.035;
           ctx.strokeStyle = "#fff3c7";
           ctx.lineWidth = 1;
@@ -1255,6 +1454,9 @@
         ctx.fillRect(0, 0, state.width, state.height);
 
         const spinAngle = seconds * 0.018 * state.spin;
+        for (const object of state.backgroundObjects) {
+          drawDistantObject(object, now);
+        }
         for (const item of state.dust) {
           const screen = project(item, 0);
           if (screen && screen.x > -40 && screen.x < state.width + 40 && screen.y > -40 && screen.y < state.height + 40) {
@@ -1305,6 +1507,11 @@
       }
 
       function updateHoverOverlay() {
+        if (state.interfaceHidden) {
+          starCard.classList.remove("show");
+          connector.classList.remove("show");
+          return;
+        }
         const storyId = state.hoverId || state.selectedId;
         const dot = state.storyDots.find((item) => item.story.id === storyId);
         cursorDot.classList.toggle("hot", Boolean(state.hoverId));
@@ -1388,6 +1595,22 @@
 
       function clearMovementKeys() {
         state.keys.clear();
+      }
+
+      function toggleInterfaceHidden() {
+        state.interfaceHidden = !state.interfaceHidden;
+        document.body.classList.toggle("ui-hidden", state.interfaceHidden);
+        if (state.interfaceHidden) {
+          closeReader();
+          closeComposer();
+          drawer.classList.remove("open");
+          drawer.setAttribute("aria-hidden", "true");
+          starCard.classList.remove("show");
+          connector.classList.remove("show");
+          showToast("已进入隐藏界面。");
+        } else {
+          showToast("界面已显示。");
+        }
       }
 
       function openComposer() {
@@ -1560,11 +1783,21 @@
           localStorage.setItem(flightKey, String(flightRange.value));
           updateSpeedReadouts();
         });
+        coreHaloRange.addEventListener("input", () => {
+          state.coreHalo = Number(coreHaloRange.value) / 100;
+          localStorage.setItem(coreHaloKey, String(coreHaloRange.value));
+          updateSpeedReadouts();
+        });
 
         window.addEventListener("resize", resize);
         window.addEventListener("keydown", (event) => {
           if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
           const key = event.key.toLowerCase();
+          if (key === "h") {
+            toggleInterfaceHidden();
+            event.preventDefault();
+            return;
+          }
           if (["w", "a", "s", "d", "q", "e"].includes(key)) {
             state.keys.add(key);
             event.preventDefault();
