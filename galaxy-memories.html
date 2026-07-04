@@ -11,47 +11,35 @@
       --ink: #d8c89a;
       --ink-bright: #fff3c7;
       --muted: rgba(216, 200, 154, 0.66);
-      --faint: rgba(216, 200, 154, 0.36);
       --line: rgba(216, 200, 154, 0.18);
       --glass: rgba(0, 0, 0, 0.58);
-      --glass-soft: rgba(0, 0, 0, 0.32);
       --ember: #d8835f;
-      --star: #f1dfb2;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html,
     body {
-      margin: 0;
       width: 100%;
       height: 100%;
+      margin: 0;
       overflow: hidden;
       background: var(--bg);
       color: var(--ink);
       font-family: Georgia, "Times New Roman", "Songti SC", "SimSun", serif;
     }
 
-    body {
-      cursor: none;
-      user-select: none;
-    }
-
-    button,
-    input,
-    textarea {
-      font: inherit;
-    }
+    body { cursor: auto; }
+    button { cursor: pointer; }
+    button, input, textarea { font: inherit; }
 
     #scene {
       position: fixed;
       inset: 0;
       z-index: 1;
       background:
-        radial-gradient(circle at 50% 46%, rgba(218, 172, 102, 0.05), transparent 22%),
-        radial-gradient(circle at 50% 50%, rgba(16, 18, 35, 0.72), #07080f 72%);
+        radial-gradient(circle at 50% 44%, rgba(216, 200, 154, 0.08), transparent 18%),
+        radial-gradient(circle at 50% 50%, rgba(17, 20, 42, 0.8), #07080f 74%);
     }
 
     #scene canvas {
@@ -75,12 +63,8 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 24px;
+      gap: 22px;
       text-shadow: 0 0 24px rgba(0, 0, 0, 0.86);
-    }
-
-    .brand {
-      min-width: 220px;
     }
 
     .brand h1 {
@@ -94,11 +78,9 @@
 
     .brand p {
       margin: 12px 0 0;
-      max-width: 360px;
+      max-width: 380px;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.8;
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font: 13px/1.8 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .stats {
@@ -106,18 +88,14 @@
       align-items: center;
       gap: 16px;
       min-height: 44px;
-      padding: 0 2px;
       color: var(--ink-bright);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 14px;
+      font: 14px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
 
     .stats strong {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 28px;
-      font-weight: 500;
+      font: 500 28px/1 Georgia, "Times New Roman", serif;
     }
 
     .toolbar {
@@ -135,27 +113,34 @@
       border-radius: 999px;
       color: var(--ink);
       background: var(--glass);
-      cursor: none;
       backdrop-filter: blur(16px);
-      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
     }
 
     .tool {
-      width: 42px;
+      min-width: 42px;
       height: 42px;
-      display: grid;
+      display: inline-grid;
       place-items: center;
+      padding: 0 14px;
       color: var(--ink-bright);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font: 13px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .icon-tool {
+      width: 42px;
+      padding: 0;
       font-size: 18px;
     }
 
     .tool:hover,
     .ghost:hover {
-      border-color: rgba(216, 131, 95, 0.6);
-      background: rgba(216, 131, 95, 0.12);
+      border-color: rgba(216, 131, 95, 0.65);
+      background: rgba(216, 131, 95, 0.13);
       color: var(--ink-bright);
     }
+
+    button:active { transform: translateY(1px); }
 
     .speed-control {
       width: 176px;
@@ -170,29 +155,24 @@
       color: var(--muted);
       background: var(--glass);
       backdrop-filter: blur(16px);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 12px;
+      font: 12px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       pointer-events: auto;
     }
 
     .speed-control input {
       width: 84px;
       accent-color: var(--ember);
-      cursor: none;
     }
 
     .hint {
       position: absolute;
       left: 50%;
       bottom: 14vh;
-      width: min(620px, calc(100vw - 36px));
+      width: min(650px, calc(100vw - 36px));
       transform: translateX(-50%);
       color: rgba(255, 255, 255, 0.48);
       text-align: center;
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 13px;
-      font-weight: 300;
-      line-height: 1.8;
+      font: 300 13px/1.8 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       text-shadow: 0 0 22px rgba(0, 0, 0, 0.9);
     }
 
@@ -205,16 +185,10 @@
       justify-content: space-between;
       gap: 16px;
       color: rgba(216, 200, 154, 0.5);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 12px;
-      letter-spacing: 0;
+      font: 12px/1.4 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
-    .keys {
-      display: flex;
-      gap: 7px;
-      align-items: center;
-    }
+    .keys { display: flex; gap: 7px; align-items: center; }
 
     .key {
       min-width: 26px;
@@ -228,26 +202,26 @@
       font-size: 11px;
     }
 
-    .cursor {
+    .cursor-dot {
       position: fixed;
       left: 0;
       top: 0;
       z-index: 9;
-      width: 18px;
-      height: 18px;
-      border: 1px solid rgba(255, 243, 199, 0.72);
+      width: 20px;
+      height: 20px;
+      border: 1px solid rgba(255, 243, 199, 0.92);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
-      box-shadow: 0 0 16px rgba(216, 131, 95, 0.28), inset 0 0 10px rgba(255, 243, 199, 0.18);
+      box-shadow: 0 0 18px rgba(216, 131, 95, 0.46), inset 0 0 10px rgba(255, 243, 199, 0.2);
       transition: width 140ms ease, height 140ms ease, border-color 140ms ease, background 140ms ease;
     }
 
-    .cursor.hot {
-      width: 30px;
-      height: 30px;
+    .cursor-dot.hot {
+      width: 34px;
+      height: 34px;
       border-color: var(--ember);
-      background: rgba(216, 131, 95, 0.1);
+      background: rgba(216, 131, 95, 0.12);
     }
 
     .connector {
@@ -256,15 +230,12 @@
       z-index: 3;
       width: 100%;
       height: 100%;
-      pointer-events: none;
       opacity: 0;
+      pointer-events: none;
       transition: opacity 220ms ease;
     }
 
-    .connector.show {
-      opacity: 1;
-    }
-
+    .connector.show { opacity: 1; }
     .connector line {
       stroke: rgba(216, 200, 154, 0.38);
       stroke-width: 1;
@@ -277,23 +248,23 @@
       min-width: 190px;
       max-width: 280px;
       padding: 14px 15px;
-      border: 1px solid rgba(216, 200, 154, 0.2);
+      border: 1px solid rgba(216, 200, 154, 0.22);
       border-radius: 8px;
       color: var(--ink);
-      background: rgba(0, 0, 0, 0.62);
+      background: rgba(0, 0, 0, 0.64);
       backdrop-filter: blur(16px);
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
       opacity: 0;
       transform: translateY(10px);
-      pointer-events: auto;
+      pointer-events: none;
       transition: opacity 420ms ease, transform 420ms ease;
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      cursor: none;
+      font: 12px/1.6 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .star-card.show {
       opacity: 1;
       transform: translateY(0);
+      pointer-events: auto;
     }
 
     .star-card .date {
@@ -305,17 +276,12 @@
     .star-card h2 {
       margin: 7px 0 8px;
       color: var(--ink-bright);
-      font-family: Georgia, "Times New Roman", "Songti SC", serif;
-      font-size: 22px;
-      font-weight: 500;
-      line-height: 1.12;
+      font: 500 22px/1.12 Georgia, "Times New Roman", "Songti SC", serif;
     }
 
     .star-card p {
       margin: 0;
       color: rgba(255, 247, 232, 0.54);
-      font-size: 12px;
-      line-height: 1.65;
     }
 
     .drawer {
@@ -328,16 +294,14 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       border-left: 1px solid var(--line);
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.72);
       backdrop-filter: blur(22px);
-      box-shadow: -24px 0 80px rgba(0, 0, 0, 0.4);
+      box-shadow: -24px 0 80px rgba(0, 0, 0, 0.42);
       transform: translateX(102%);
       transition: transform 260ms ease;
     }
 
-    .drawer.open {
-      transform: translateX(0);
-    }
+    .drawer.open { transform: translateX(0); }
 
     .drawer-head {
       display: flex;
@@ -374,7 +338,6 @@
       color: var(--ink);
       text-align: left;
       background: transparent;
-      cursor: none;
     }
 
     .story-button:hover,
@@ -384,8 +347,7 @@
 
     .story-date {
       color: var(--ember);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 12px;
+      font: 12px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-variant-numeric: tabular-nums;
     }
 
@@ -400,9 +362,7 @@
       display: -webkit-box;
       overflow: hidden;
       color: rgba(255, 247, 232, 0.54);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 12px;
-      line-height: 1.65;
+      font: 12px/1.65 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
@@ -448,7 +408,7 @@
       grid-template-rows: auto 1fr auto;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgba(0, 0, 0, 0.72);
+      background: rgba(0, 0, 0, 0.74);
       box-shadow: 0 30px 110px rgba(0, 0, 0, 0.54);
       overflow: hidden;
       transform: translateY(14px);
@@ -456,9 +416,7 @@
     }
 
     .modal.open .reader,
-    .modal.open .composer {
-      transform: translateY(0);
-    }
+    .modal.open .composer { transform: translateY(0); }
 
     .reader-head,
     .composer-head {
@@ -468,8 +426,7 @@
 
     .reader-date {
       color: var(--ember);
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-size: 13px;
+      font: 13px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-variant-numeric: tabular-nums;
     }
 
@@ -510,8 +467,7 @@
 
     .primary {
       color: #170e08;
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
-      font-weight: 700;
+      font: 700 14px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       background: linear-gradient(135deg, #d8c89a, #d8835f);
       box-shadow: 0 16px 44px rgba(216, 131, 95, 0.2);
     }
@@ -521,7 +477,7 @@
       display: grid;
       gap: 12px;
       padding: 18px 20px;
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font: 13px/1.5 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .form-grid {
@@ -533,7 +489,7 @@
     label {
       display: grid;
       gap: 6px;
-      color: var(--faint);
+      color: rgba(216, 200, 154, 0.42);
       font-size: 12px;
     }
 
@@ -596,7 +552,7 @@
       box-shadow: 0 18px 56px rgba(0, 0, 0, 0.42);
       pointer-events: none;
       transition: opacity 180ms ease, transform 180ms ease;
-      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font: 13px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .toast.show {
@@ -605,24 +561,10 @@
     }
 
     @media (max-width: 820px) {
-      .topbar {
-        flex-wrap: wrap;
-      }
-
-      .brand p,
-      .footer {
-        display: none;
-      }
-
-      .stats {
-        order: 3;
-        width: 100%;
-      }
-
-      .toolbar {
-        gap: 7px;
-      }
-
+      .topbar { flex-wrap: wrap; }
+      .brand p, .footer { display: none; }
+      .stats { order: 3; width: 100%; }
+      .toolbar { gap: 7px; }
       .speed-control {
         position: fixed;
         right: 14px;
@@ -630,28 +572,12 @@
         width: 148px;
         height: 38px;
       }
-
-      .speed-control input {
-        width: 62px;
-      }
-
-      .tool {
-        width: 39px;
-        height: 39px;
-      }
-
-      .hint {
-        bottom: 18px;
-        font-size: 12px;
-      }
-
-      .cursor {
-        display: none;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+      .speed-control input { width: 62px; }
+      .icon-tool { width: 39px; height: 39px; }
+      .tool { height: 39px; }
+      .hint { bottom: 18px; font-size: 12px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .cursor-dot { display: none; }
     }
   </style>
   <script type="importmap">
@@ -680,9 +606,9 @@
           星云速度
           <input id="speedRange" type="range" min="0" max="100" value="16">
         </label>
-        <button class="tool" id="addButton" type="button" title="添加故事">＋</button>
-        <button class="tool" id="listButton" type="button" title="故事时间线">☰</button>
-        <button class="tool" id="resetView" type="button" title="重置视角">◎</button>
+        <button class="tool" id="addButton" type="button" title="添加故事">＋ 添加故事</button>
+        <button class="tool icon-tool" id="listButton" type="button" title="故事时间线">☰</button>
+        <button class="tool icon-tool" id="resetView" type="button" title="重置视角">◎</button>
       </nav>
     </header>
 
@@ -700,15 +626,15 @@
   <button class="star-card" id="starCard" type="button" aria-label="打开故事">
     <div class="date" id="cardDate"></div>
     <h2 id="cardTitle"></h2>
-    <p id="cardHint">再次点击星星或这张卡片阅读故事</p>
+    <p>再次点击星星或这张卡片阅读故事</p>
   </button>
 
-  <div class="cursor" id="cursor"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
 
   <aside class="drawer" id="drawer" aria-label="故事时间线">
     <div class="drawer-head">
       <h2>故事时间线</h2>
-      <button class="tool" id="closeDrawer" type="button" title="关闭">×</button>
+      <button class="tool icon-tool" id="closeDrawer" type="button" title="关闭">×</button>
     </div>
     <div class="story-list" id="storyList"></div>
     <div class="drawer-foot">
@@ -766,6 +692,31 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite">已点亮</div>
 
+  <script>
+    window.storyCloudFallback = {
+      openComposer() {
+        const modal = document.querySelector("#composerModal");
+        const date = document.querySelector("#storyDate");
+        if (date && !date.value) date.value = new Date().toISOString().slice(0, 10);
+        modal?.classList.add("open");
+        modal?.setAttribute("aria-hidden", "false");
+      },
+      closeComposer() {
+        const modal = document.querySelector("#composerModal");
+        modal?.classList.remove("open");
+        modal?.setAttribute("aria-hidden", "true");
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelector("#addButton")?.addEventListener("click", window.storyCloudFallback.openComposer);
+      document.querySelector("#cancelComposer")?.addEventListener("click", window.storyCloudFallback.closeComposer);
+      document.querySelector("#composerModal")?.addEventListener("click", (event) => {
+        if (event.target.id === "composerModal") window.storyCloudFallback.closeComposer();
+      });
+    });
+  </script>
+
   <script type="module">
     import * as THREE from "three";
 
@@ -790,11 +741,11 @@
     const cardTitle = document.querySelector("#cardTitle");
     const connector = document.querySelector("#connector");
     const connectorLine = document.querySelector("#connectorLine");
-    const cursor = document.querySelector("#cursor");
+    const cursorDot = document.querySelector("#cursorDot");
     const toast = document.querySelector("#toast");
 
-    const localKey = "story-cloud-local-v2";
-    const speedKey = "story-cloud-speed-v2";
+    const localKey = "story-cloud-local-v3";
+    const speedKey = "story-cloud-speed-v3";
     const palette = [0xd8c89a, 0xd8835f, 0xc9b28b, 0xf1dfb2, 0xe1a77f];
     const quality = getQualityProfile();
     const samples = [
@@ -819,7 +770,6 @@
       storyObjects: new Map(),
       selectedId: null,
       hoverId: null,
-      pointer: new THREE.Vector2(99, 99),
       screenPointer: { x: -9999, y: -9999 },
       keys: new Set(),
       dragging: false,
@@ -827,8 +777,7 @@
       lastMouse: { x: 0, y: 0 },
       yaw: 0,
       pitch: -0.12,
-      speed: Number(localStorage.getItem(speedKey) || 16) / 100,
-      last: 0
+      speed: Number(localStorage.getItem(speedKey) || 16) / 100
     };
 
     speedRange.value = String(Math.round(state.speed * 100));
@@ -844,20 +793,30 @@
 
     const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 9000);
     camera.position.set(0, 150, 1200);
+    camera.rotation.set(state.pitch, state.yaw, 0, "YXZ");
 
     const galaxy = new THREE.Group();
     const storyLayer = new THREE.Group();
     scene.add(galaxy, storyLayer);
 
-    const raycaster = new THREE.Raycaster();
     const tempVector = new THREE.Vector3();
     const clock = new THREE.Clock();
+
+    function getQualityProfile() {
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const narrow = window.matchMedia("(max-width: 820px)").matches;
+      const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 4;
+      const mobile = coarse || narrow || lowMemory;
+      return mobile
+        ? { mobile: true, antialias: false, pixelRatio: 1.25, disk: 10500, core: 1400, cloud: 900, field: 3200, cloudCount: 2 }
+        : { mobile: false, antialias: true, pixelRatio: 1.75, disk: 26000, core: 3600, cloud: 2400, field: 9000, cloudCount: 3 };
+    }
 
     function today() {
       return new Date().toISOString().slice(0, 10);
     }
 
-    function id() {
+    function makeId() {
       return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
     }
 
@@ -867,8 +826,7 @@
 
     function formatDate(value) {
       const parts = String(value || "").split("-");
-      if (parts.length !== 3) return value || "";
-      return `${parts[0]}.${parts[1]}.${parts[2]}`;
+      return parts.length === 3 ? `${parts[0]}.${parts[1]}.${parts[2]}` : value || "";
     }
 
     function showToast(message) {
@@ -883,7 +841,7 @@
       const text = String(raw.text || "").trim();
       if (!title || !text) return null;
       return {
-        id: raw.id || id(),
+        id: raw.id || makeId(),
         source: raw.source || source,
         date: raw.date || today(),
         title,
@@ -907,8 +865,7 @@
     }
 
     function saveLocalStories() {
-      const localStories = state.stories.filter((story) => story.source === "local");
-      localStorage.setItem(localKey, JSON.stringify(localStories));
+      localStorage.setItem(localKey, JSON.stringify(state.stories.filter((story) => story.source === "local")));
     }
 
     async function loadStories() {
@@ -921,7 +878,6 @@
       } catch {
         publicStories = samples;
       }
-
       state.stories = [
         ...publicStories.map((item) => normalizeStory(item, "public")).filter(Boolean),
         ...loadLocalStories()
@@ -934,18 +890,11 @@
 
     function makeGalaxy() {
       galaxy.clear();
-
-      const disk = makeSpiralPoints(quality.disk, quality.mobile ? 0.64 : 0.76, quality.mobile ? 1.45 : 1.7);
-      galaxy.add(disk);
-
-      const core = makeCloudPoints(quality.core, 0, 0, 0, 440, 0xd8c89a, quality.mobile ? 0.34 : 0.44, quality.mobile ? 2.8 : 3.4);
-      galaxy.add(core);
-
+      galaxy.add(makeSpiralPoints(quality.disk, quality.mobile ? 0.64 : 0.76, quality.mobile ? 1.45 : 1.7));
+      galaxy.add(makeCloudPoints(quality.core, 0, 0, 0, 440, 0xd8c89a, quality.mobile ? 0.34 : 0.44, quality.mobile ? 2.8 : 3.4));
       galaxy.add(makeCloudPoints(quality.cloud, -1450, 180, -620, 540, 0xd8835f, quality.mobile ? 0.16 : 0.22, quality.mobile ? 4.1 : 5.2));
       galaxy.add(makeCloudPoints(quality.cloud, 1220, -120, 880, 620, 0xc9b28b, quality.mobile ? 0.15 : 0.2, quality.mobile ? 4.4 : 5.6));
-      if (quality.cloudCount > 2) {
-        galaxy.add(makeCloudPoints(2200, 420, 320, -1500, 460, 0xf1dfb2, 0.16, 4.8));
-      }
+      if (quality.cloudCount > 2) galaxy.add(makeCloudPoints(2200, 420, 320, -1500, 460, 0xf1dfb2, 0.16, 4.8));
       galaxy.add(makeFieldStars(quality.field));
     }
 
@@ -958,29 +907,20 @@
         const t = Math.random();
         const angle = arm * Math.PI * 0.4 + t * Math.PI * 8.6 + rand(-0.42, 0.42);
         const radius = 120 + Math.pow(t, 0.72) * 2600 + rand(-70, 70);
-        const y = rand(-38, 38) * (1 + t * 2.8);
         positions[i * 3] = Math.cos(angle) * radius;
-        positions[i * 3 + 1] = y;
+        positions[i * 3 + 1] = rand(-38, 38) * (1 + t * 2.8);
         positions[i * 3 + 2] = Math.sin(angle) * radius * 0.72;
-
         color.set(i % 17 === 0 ? 0xd8835f : i % 11 === 0 ? 0xf1dfb2 : 0xc9b28b);
-        const brightness = rand(0.5, 1.0);
-        colors[i * 3] = color.r * brightness;
-        colors[i * 3 + 1] = color.g * brightness;
-        colors[i * 3 + 2] = color.b * brightness;
+        const b = rand(0.5, 1);
+        colors[i * 3] = color.r * b;
+        colors[i * 3 + 1] = color.g * b;
+        colors[i * 3 + 2] = color.b * b;
       }
-
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       return new THREE.Points(geometry, new THREE.PointsMaterial({
-        size,
-        vertexColors: true,
-        transparent: true,
-        opacity,
-        sizeAttenuation: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
+        size, vertexColors: true, transparent: true, opacity, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
       }));
     }
 
@@ -992,23 +932,16 @@
         positions[i * 3] = cx + rand(-spread, spread);
         positions[i * 3 + 1] = cy + rand(-spread * 0.38, spread * 0.38);
         positions[i * 3 + 2] = cz + rand(-spread, spread);
-        const brightness = rand(0.35, 1);
-        colors[i * 3] = color.r * brightness;
-        colors[i * 3 + 1] = color.g * brightness;
-        colors[i * 3 + 2] = color.b * brightness;
+        const b = rand(0.35, 1);
+        colors[i * 3] = color.r * b;
+        colors[i * 3 + 1] = color.g * b;
+        colors[i * 3 + 2] = color.b * b;
       }
-
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       return new THREE.Points(geometry, new THREE.PointsMaterial({
-        size,
-        vertexColors: true,
-        transparent: true,
-        opacity,
-        sizeAttenuation: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
+        size, vertexColors: true, transparent: true, opacity, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
       }));
     }
 
@@ -1032,21 +965,14 @@
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       return new THREE.Points(geometry, new THREE.PointsMaterial({
-        size: 1.9,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.68,
-        sizeAttenuation: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
+        size: 1.9, vertexColors: true, transparent: true, opacity: 0.68, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending
       }));
     }
 
     function makeStarTexture(colorValue, favorite) {
-      const size = 128;
       const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = 128;
+      canvas.height = 128;
       const context = canvas.getContext("2d");
       const color = new THREE.Color(colorValue);
       const rgb = `${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}`;
@@ -1056,7 +982,7 @@
       gradient.addColorStop(0.24, `rgba(${rgb}, ${favorite ? 0.14 : 0.07})`);
       gradient.addColorStop(1, `rgba(${rgb}, 0)`);
       context.fillStyle = gradient;
-      context.fillRect(0, 0, size, size);
+      context.fillRect(0, 0, 128, 128);
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
       return texture;
@@ -1066,7 +992,7 @@
       state.stories.forEach((story, index) => {
         if (story.x || story.y || story.z) return;
         const total = Math.max(1, state.stories.length);
-        const angle = (index / total) * Math.PI * 2.0 + index * 0.68;
+        const angle = index / total * Math.PI * 2 + index * 0.68;
         const radius = 460 + index * 110 + rand(-70, 70);
         story.x = Math.cos(angle) * radius;
         story.y = rand(-170, 190);
@@ -1079,9 +1005,8 @@
       state.storyObjects.clear();
       state.stories.forEach((story, index) => {
         const colorValue = story.color ? Number(story.color) : palette[index % palette.length];
-        const texture = makeStarTexture(colorValue, story.favorite);
         const material = new THREE.SpriteMaterial({
-          map: texture,
+          map: makeStarTexture(colorValue, story.favorite),
           transparent: true,
           opacity: story.favorite ? 0.92 : 0.64,
           depthWrite: false,
@@ -1111,11 +1036,9 @@
         const date = document.createElement("div");
         date.className = "story-date";
         date.textContent = `${formatDate(story.date)}${story.favorite ? " · 收藏" : ""}`;
-
         const title = document.createElement("div");
         title.className = "story-title";
         title.textContent = story.title;
-
         const excerpt = document.createElement("div");
         excerpt.className = "story-excerpt";
         excerpt.textContent = story.text;
@@ -1139,7 +1062,7 @@
       const index = state.stories.length;
       const angle = index * 1.82 + rand(-0.4, 0.4);
       const story = normalizeStory({
-        id: id(),
+        id: makeId(),
         source: "local",
         date,
         title,
@@ -1194,37 +1117,35 @@
     }
 
     function openComposer() {
-      storyDate.value = today();
-      storyFavorite.checked = false;
-      composerModal.classList.add("open");
-      composerModal.setAttribute("aria-hidden", "false");
+      window.storyCloudFallback.openComposer();
       setTimeout(() => storyTitle.focus(), 80);
     }
 
     function closeComposer() {
-      composerModal.classList.remove("open");
-      composerModal.setAttribute("aria-hidden", "true");
+      window.storyCloudFallback.closeComposer();
     }
 
     function getProjected(storyId) {
       const object = state.storyObjects.get(storyId);
       if (!object) return null;
       tempVector.copy(object.position).project(camera);
-      const x = (tempVector.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-tempVector.y * 0.5 + 0.5) * window.innerHeight;
-      const visible = tempVector.z > -1 && tempVector.z < 1;
-      return { x, y, visible };
+      return {
+        x: (tempVector.x * 0.5 + 0.5) * window.innerWidth,
+        y: (-tempVector.y * 0.5 + 0.5) * window.innerHeight,
+        visible: tempVector.z > -1 && tempVector.z < 1,
+        depth: tempVector.z
+      };
     }
 
     function updateSelectionOverlay() {
-      const id = state.selectedId || state.hoverId;
-      const story = state.stories.find((item) => item.id === id);
+      const storyId = state.selectedId || state.hoverId;
+      const story = state.stories.find((item) => item.id === storyId);
       if (!story) {
         connector.classList.remove("show");
         return;
       }
       const projected = getProjected(story.id);
-      if (!projected || !projected.visible) {
+      if (!projected?.visible) {
         connector.classList.remove("show");
         return;
       }
@@ -1240,27 +1161,19 @@
     }
 
     function findStoryUnderPointer() {
-      const results = [];
-      for (const [storyId, object] of state.storyObjects.entries()) {
+      const hits = [];
+      for (const [storyId] of state.storyObjects.entries()) {
         const projected = getProjected(storyId);
-        if (!projected || !projected.visible) continue;
+        if (!projected?.visible) continue;
         const dx = state.screenPointer.x - projected.x;
         const dy = state.screenPointer.y - projected.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         const story = state.stories.find((item) => item.id === storyId);
         const hitRadius = story?.favorite ? 17 : 11;
-        if (distance <= hitRadius) {
-          results.push({ storyId, distance, z: tempVector.z });
-        }
+        if (distance <= hitRadius) hits.push({ storyId, distance, depth: projected.depth });
       }
-      results.sort((a, b) => a.distance - b.distance || a.z - b.z);
-      return results[0]?.storyId || null;
-    }
-
-    function updateCursor(x, y) {
-      cursor.style.left = `${x}px`;
-      cursor.style.top = `${y}px`;
-      cursor.classList.toggle("hot", Boolean(state.hoverId));
+      hits.sort((a, b) => a.distance - b.distance || a.depth - b.depth);
+      return hits[0]?.storyId || null;
     }
 
     function flyToStory(storyId) {
@@ -1305,18 +1218,20 @@
       camera.rotation.set(state.pitch, state.yaw, 0, "YXZ");
     }
 
-    function animate(now) {
-      const delta = Math.min(0.04, clock.getDelta());
-      galaxy.rotation.y += delta * 0.012 * state.speed;
-      galaxy.rotation.z = Math.sin(now * 0.00004) * (quality.mobile ? 0.012 : 0.025);
-      storyLayer.rotation.y += delta * 0.012 * state.speed;
-
-      updateCamera(delta);
-      updateHover();
-      pulseStories(now);
-      updateSelectionOverlay();
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
+    function updateHover() {
+      state.hoverId = findStoryUnderPointer();
+      cursorDot.classList.toggle("hot", Boolean(state.hoverId));
+      if (state.hoverId && !state.selectedId) {
+        const story = state.stories.find((item) => item.id === state.hoverId);
+        if (story) {
+          cardDate.textContent = formatDate(story.date);
+          cardTitle.textContent = story.title;
+          starCard.classList.add("show");
+        }
+      } else if (!state.selectedId) {
+        starCard.classList.remove("show");
+        connector.classList.remove("show");
+      }
     }
 
     function pulseStories(now) {
@@ -1332,19 +1247,17 @@
       }
     }
 
-    function updateHover() {
-      state.hoverId = findStoryUnderPointer();
-      if (state.hoverId && !state.selectedId) {
-        const story = state.stories.find((item) => item.id === state.hoverId);
-        if (story) {
-          cardDate.textContent = formatDate(story.date);
-          cardTitle.textContent = story.title;
-          starCard.classList.add("show");
-        }
-      } else if (!state.selectedId) {
-        starCard.classList.remove("show");
-        connector.classList.remove("show");
-      }
+    function animate(now) {
+      const delta = Math.min(0.04, clock.getDelta());
+      galaxy.rotation.y += delta * 0.012 * state.speed;
+      galaxy.rotation.z = Math.sin(now * 0.00004) * (quality.mobile ? 0.012 : 0.025);
+      storyLayer.rotation.y += delta * 0.012 * state.speed;
+      updateCamera(delta);
+      updateHover();
+      pulseStories(now);
+      updateSelectionOverlay();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
     }
 
     function showStoryFromPointer() {
@@ -1353,11 +1266,8 @@
         clearSelection();
         return;
       }
-      if (state.selectedId === storyId) {
-        openStory(storyId);
-      } else {
-        selectStory(storyId);
-      }
+      if (state.selectedId === storyId) openStory(storyId);
+      else selectStory(storyId);
     }
 
     function deleteSelectedLocalStory() {
@@ -1464,9 +1374,8 @@
     function onPointerMove(event) {
       state.screenPointer.x = event.clientX;
       state.screenPointer.y = event.clientY;
-      state.pointer.x = event.clientX / window.innerWidth * 2 - 1;
-      state.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      updateCursor(event.clientX, event.clientY);
+      cursorDot.style.left = `${event.clientX}px`;
+      cursorDot.style.top = `${event.clientY}px`;
 
       if (!state.dragging) return;
       const dx = event.clientX - state.lastMouse.x;
@@ -1492,13 +1401,6 @@
       renderer.domElement.releasePointerCapture(event.pointerId);
     }
 
-    function updateCursor(x, y) {
-      if (quality.mobile) return;
-      cursor.style.left = `${x}px`;
-      cursor.style.top = `${y}px`;
-      cursor.classList.toggle("hot", Boolean(state.hoverId));
-    }
-
     function resize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -1515,30 +1417,3 @@
   </script>
 </body>
 </html>
-    function getQualityProfile() {
-      const coarse = window.matchMedia("(pointer: coarse)").matches;
-      const narrow = window.matchMedia("(max-width: 820px)").matches;
-      const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 4;
-      const mobile = coarse || narrow || lowMemory;
-      return mobile
-        ? {
-            mobile: true,
-            antialias: false,
-            pixelRatio: 1.25,
-            disk: 10500,
-            core: 1400,
-            cloud: 900,
-            field: 3200,
-            cloudCount: 2
-          }
-        : {
-            mobile: false,
-            antialias: true,
-            pixelRatio: 1.75,
-            disk: 26000,
-            core: 3600,
-            cloud: 2400,
-            field: 9000,
-            cloudCount: 3
-          };
-    }
