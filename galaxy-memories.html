@@ -3,21 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>故事星云</title>
+  <title>故事云</title>
   <style>
     :root {
       color-scheme: dark;
-      --ink: #fff7e8;
-      --muted: rgba(255, 247, 232, 0.66);
-      --faint: rgba(255, 247, 232, 0.36);
-      --line: rgba(255, 247, 232, 0.16);
-      --glass: rgba(7, 9, 18, 0.46);
-      --glass-strong: rgba(7, 9, 18, 0.78);
-      --gold: #ffd878;
-      --rose: #ff7fa8;
-      --cyan: #8fe7ff;
-      --mint: #9cf5cf;
-      --violet: #c2adff;
+      --bg: #07080f;
+      --ink: #d8c89a;
+      --ink-bright: #fff3c7;
+      --muted: rgba(216, 200, 154, 0.66);
+      --faint: rgba(216, 200, 154, 0.36);
+      --line: rgba(216, 200, 154, 0.18);
+      --glass: rgba(0, 0, 0, 0.58);
+      --glass-soft: rgba(0, 0, 0, 0.32);
+      --ember: #d8835f;
+      --star: #f1dfb2;
     }
 
     * {
@@ -27,11 +26,17 @@
     html,
     body {
       margin: 0;
-      min-height: 100%;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      background: #02030a;
+      background: var(--bg);
       color: var(--ink);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-family: Georgia, "Times New Roman", "Songti SC", "SimSun", serif;
+    }
+
+    body {
+      cursor: none;
+      user-select: none;
     }
 
     button,
@@ -40,96 +45,85 @@
       font: inherit;
     }
 
-    .space {
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 50% 46%, rgba(255, 216, 120, 0.12), transparent 8%),
-        radial-gradient(circle at 68% 32%, rgba(143, 231, 255, 0.15), transparent 18%),
-        radial-gradient(circle at 30% 68%, rgba(255, 127, 168, 0.12), transparent 19%),
-        radial-gradient(circle at 50% 50%, #17182f 0%, #060816 50%, #010209 100%);
-    }
-
-    .space::before {
-      content: "";
-      position: absolute;
-      inset: -20%;
-      opacity: 0.35;
-      background:
-        conic-gradient(from 110deg at 50% 50%, transparent, rgba(255, 216, 120, 0.08), transparent, rgba(143, 231, 255, 0.07), transparent),
-        radial-gradient(ellipse at 50% 50%, rgba(255, 247, 232, 0.06), transparent 56%);
-      filter: blur(18px);
-      animation: breathe 18s ease-in-out infinite alternate;
-    }
-
-    .space::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: 0.12;
-      mix-blend-mode: screen;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.11) 1px, transparent 1px);
-      background-size: 64px 64px, 47px 47px;
-      mask-image: radial-gradient(circle at 50% 50%, black, transparent 76%);
-    }
-
-    @keyframes breathe {
-      from {
-        transform: rotate(-3deg) scale(1);
-      }
-      to {
-        transform: rotate(4deg) scale(1.08);
-      }
-    }
-
-    canvas {
+    #scene {
       position: fixed;
       inset: 0;
       z-index: 1;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(218, 172, 102, 0.05), transparent 22%),
+        radial-gradient(circle at 50% 50%, rgba(16, 18, 35, 0.72), #07080f 72%);
+    }
+
+    #scene canvas {
       display: block;
       width: 100%;
       height: 100%;
-      cursor: crosshair;
     }
 
-    .chrome {
+    .overlay {
       position: fixed;
       inset: 0;
       z-index: 2;
       pointer-events: none;
     }
 
-    .brand {
+    .topbar {
       position: absolute;
       left: clamp(18px, 3vw, 38px);
-      top: clamp(18px, 3vw, 34px);
-      width: min(360px, calc(100vw - 36px));
-      pointer-events: none;
-      text-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      right: clamp(18px, 3vw, 38px);
+      top: clamp(16px, 2.6vw, 30px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      text-shadow: 0 0 24px rgba(0, 0, 0, 0.86);
+    }
+
+    .brand {
+      min-width: 220px;
     }
 
     .brand h1 {
       margin: 0;
-      font-size: clamp(34px, 6vw, 78px);
-      line-height: 0.92;
+      color: var(--ink-bright);
+      font-size: clamp(34px, 5vw, 70px);
+      line-height: 0.9;
+      font-weight: 500;
       letter-spacing: 0;
-      font-weight: 760;
     }
 
     .brand p {
       margin: 12px 0 0;
+      max-width: 360px;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.8;
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-height: 44px;
+      padding: 0 2px;
+      color: var(--ink-bright);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .stats strong {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 28px;
+      font-weight: 500;
     }
 
     .toolbar {
-      position: absolute;
-      right: clamp(14px, 2.4vw, 30px);
-      top: clamp(14px, 2.4vw, 28px);
       display: flex;
+      align-items: center;
+      justify-content: flex-end;
       gap: 9px;
       pointer-events: auto;
     }
@@ -141,9 +135,9 @@
       border-radius: 999px;
       color: var(--ink);
       background: var(--glass);
-      backdrop-filter: blur(18px);
-      cursor: pointer;
-      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, filter 160ms ease;
+      cursor: none;
+      backdrop-filter: blur(16px);
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
     }
 
     .tool {
@@ -151,51 +145,192 @@
       height: 42px;
       display: grid;
       place-items: center;
-      font-size: 19px;
-      line-height: 1;
+      color: var(--ink-bright);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font-size: 18px;
     }
 
     .tool:hover,
     .ghost:hover {
-      border-color: rgba(255, 216, 120, 0.45);
-      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(216, 131, 95, 0.6);
+      background: rgba(216, 131, 95, 0.12);
+      color: var(--ink-bright);
     }
 
-    .primary:hover {
-      filter: brightness(1.07);
+    .speed-control {
+      width: 176px;
+      height: 42px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      pointer-events: auto;
     }
 
-    button:active {
-      transform: translateY(1px);
+    .speed-control input {
+      width: 84px;
+      accent-color: var(--ember);
+      cursor: none;
     }
 
-    .guide {
+    .hint {
       position: absolute;
       left: 50%;
-      bottom: 22px;
-      width: min(560px, calc(100vw - 32px));
+      bottom: 14vh;
+      width: min(620px, calc(100vw - 36px));
       transform: translateX(-50%);
-      color: rgba(255, 247, 232, 0.52);
+      color: rgba(255, 255, 255, 0.48);
       text-align: center;
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-size: 13px;
-      line-height: 1.7;
+      font-weight: 300;
+      line-height: 1.8;
+      text-shadow: 0 0 22px rgba(0, 0, 0, 0.9);
+    }
+
+    .footer {
+      position: absolute;
+      left: clamp(18px, 3vw, 38px);
+      right: clamp(18px, 3vw, 38px);
+      bottom: clamp(14px, 2.6vw, 26px);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: rgba(216, 200, 154, 0.5);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+
+    .keys {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .key {
+      min-width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(216, 200, 154, 0.18);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.34);
+      color: rgba(255, 243, 199, 0.72);
+      font-size: 11px;
+    }
+
+    .cursor {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 9;
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(255, 243, 199, 0.72);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
       pointer-events: none;
-      text-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 0 16px rgba(216, 131, 95, 0.28), inset 0 0 10px rgba(255, 243, 199, 0.18);
+      transition: width 140ms ease, height 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .cursor.hot {
+      width: 30px;
+      height: 30px;
+      border-color: var(--ember);
+      background: rgba(216, 131, 95, 0.1);
+    }
+
+    .connector {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 220ms ease;
+    }
+
+    .connector.show {
+      opacity: 1;
+    }
+
+    .connector line {
+      stroke: rgba(216, 200, 154, 0.38);
+      stroke-width: 1;
+      stroke-dasharray: 2 5;
+    }
+
+    .star-card {
+      position: fixed;
+      z-index: 4;
+      min-width: 190px;
+      max-width: 280px;
+      padding: 14px 15px;
+      border: 1px solid rgba(216, 200, 154, 0.2);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: auto;
+      transition: opacity 420ms ease, transform 420ms ease;
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      cursor: none;
+    }
+
+    .star-card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .star-card .date {
+      color: var(--ember);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .star-card h2 {
+      margin: 7px 0 8px;
+      color: var(--ink-bright);
+      font-family: Georgia, "Times New Roman", "Songti SC", serif;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.12;
+    }
+
+    .star-card p {
+      margin: 0;
+      color: rgba(255, 247, 232, 0.54);
+      font-size: 12px;
+      line-height: 1.65;
     }
 
     .drawer {
       position: fixed;
       top: 0;
       right: 0;
-      z-index: 4;
+      z-index: 5;
       width: min(390px, 92vw);
       height: 100vh;
       display: grid;
       grid-template-rows: auto 1fr auto;
       border-left: 1px solid var(--line);
-      background: rgba(5, 7, 16, 0.78);
+      background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(22px);
-      box-shadow: -24px 0 80px rgba(0, 0, 0, 0.35);
+      box-shadow: -24px 0 80px rgba(0, 0, 0, 0.4);
       transform: translateX(102%);
       transition: transform 260ms ease;
     }
@@ -210,19 +345,21 @@
       justify-content: space-between;
       gap: 12px;
       padding: 20px 18px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(216, 200, 154, 0.12);
     }
 
     .drawer-head h2 {
       margin: 0;
-      font-size: 16px;
-      letter-spacing: 0;
+      color: var(--ink-bright);
+      font-size: 18px;
+      font-weight: 500;
     }
 
     .story-list {
       overflow: auto;
       padding: 8px 18px 18px;
       scrollbar-width: thin;
+      pointer-events: auto;
     }
 
     .story-button {
@@ -232,35 +369,38 @@
       gap: 7px;
       padding: 13px 0;
       border: 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(216, 200, 154, 0.1);
       border-radius: 0;
       color: var(--ink);
       text-align: left;
       background: transparent;
-      cursor: pointer;
+      cursor: none;
     }
 
     .story-button:hover,
     .story-button.active {
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0.07), transparent);
+      background: linear-gradient(90deg, rgba(216, 131, 95, 0.12), transparent);
     }
 
-    .date {
-      color: var(--gold);
+    .story-date {
+      color: var(--ember);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-size: 12px;
       font-variant-numeric: tabular-nums;
     }
 
     .story-title {
       overflow-wrap: anywhere;
-      font-size: 15px;
-      font-weight: 740;
+      color: var(--ink-bright);
+      font-size: 16px;
+      font-weight: 500;
     }
 
     .story-excerpt {
       display: -webkit-box;
       overflow: hidden;
-      color: var(--muted);
+      color: rgba(255, 247, 232, 0.54);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-size: 12px;
       line-height: 1.65;
       -webkit-line-clamp: 2;
@@ -272,7 +412,8 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       padding: 14px 18px 18px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(216, 200, 154, 0.12);
+      pointer-events: auto;
     }
 
     .drawer-foot button {
@@ -280,21 +421,21 @@
       font-size: 13px;
     }
 
-    .overlay {
+    .modal {
       position: fixed;
       inset: 0;
-      z-index: 5;
+      z-index: 6;
       display: grid;
       place-items: center;
       padding: 20px;
       opacity: 0;
       pointer-events: none;
-      background: rgba(1, 2, 8, 0.5);
+      background: rgba(0, 0, 0, 0.54);
       backdrop-filter: blur(7px);
-      transition: opacity 180ms ease;
+      transition: opacity 220ms ease;
     }
 
-    .overlay.open {
+    .modal.open {
       opacity: 1;
       pointer-events: auto;
     }
@@ -304,29 +445,30 @@
       width: min(720px, 100%);
       max-height: min(780px, 88vh);
       display: grid;
+      grid-template-rows: auto 1fr auto;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--glass-strong);
-      box-shadow: 0 30px 110px rgba(0, 0, 0, 0.52);
+      background: rgba(0, 0, 0, 0.72);
+      box-shadow: 0 30px 110px rgba(0, 0, 0, 0.54);
       overflow: hidden;
+      transform: translateY(14px);
+      transition: transform 420ms ease;
     }
 
-    .reader {
-      grid-template-rows: auto 1fr auto;
-    }
-
-    .composer {
-      grid-template-rows: auto 1fr auto;
+    .modal.open .reader,
+    .modal.open .composer {
+      transform: translateY(0);
     }
 
     .reader-head,
     .composer-head {
       padding: 19px 20px 15px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(216, 200, 154, 0.12);
     }
 
     .reader-date {
-      color: var(--gold);
+      color: var(--ember);
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
       font-size: 13px;
       font-variant-numeric: tabular-nums;
     }
@@ -334,9 +476,10 @@
     .reader-title,
     .composer-head h2 {
       margin: 8px 0 0;
-      font-size: clamp(25px, 4vw, 40px);
+      color: var(--ink-bright);
+      font-size: clamp(26px, 4vw, 42px);
       line-height: 1.08;
-      letter-spacing: 0;
+      font-weight: 500;
     }
 
     .reader-body {
@@ -346,6 +489,7 @@
       white-space: pre-wrap;
       line-height: 1.95;
       font-size: 15px;
+      user-select: text;
     }
 
     .reader-actions,
@@ -354,7 +498,7 @@
       justify-content: flex-end;
       gap: 10px;
       padding: 14px 20px 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(216, 200, 154, 0.12);
     }
 
     .reader-actions button,
@@ -365,10 +509,11 @@
     }
 
     .primary {
-      color: #171007;
-      font-weight: 760;
-      background: linear-gradient(135deg, var(--gold), var(--rose) 54%, var(--cyan));
-      box-shadow: 0 16px 44px rgba(255, 127, 168, 0.22);
+      color: #170e08;
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font-weight: 700;
+      background: linear-gradient(135deg, #d8c89a, #d8835f);
+      box-shadow: 0 16px 44px rgba(216, 131, 95, 0.2);
     }
 
     .composer-form {
@@ -376,6 +521,7 @@
       display: grid;
       gap: 12px;
       padding: 18px 20px;
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .form-grid {
@@ -391,14 +537,29 @@
       font-size: 12px;
     }
 
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255, 247, 232, 0.65);
+      font-size: 13px;
+    }
+
+    .check-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ember);
+    }
+
     input,
     textarea {
       width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(216, 200, 154, 0.14);
       border-radius: 6px;
       outline: none;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.08);
+      color: var(--ink-bright);
+      background: rgba(255, 255, 255, 0.07);
+      cursor: text;
       transition: border-color 160ms ease, background 160ms ease;
     }
 
@@ -416,25 +577,26 @@
 
     input:focus,
     textarea:focus {
-      border-color: rgba(255, 216, 120, 0.58);
-      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(216, 131, 95, 0.58);
+      background: rgba(255, 255, 255, 0.11);
     }
 
     .toast {
       position: fixed;
       left: 50%;
       bottom: 24px;
-      z-index: 7;
+      z-index: 8;
       transform: translate(-50%, 18px);
       opacity: 0;
       padding: 10px 15px;
       border-radius: 999px;
-      color: #1a1207;
+      color: #170e08;
       text-align: center;
-      background: rgba(255, 235, 174, 0.96);
-      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.38);
+      background: rgba(216, 200, 154, 0.96);
+      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.42);
       pointer-events: none;
       transition: opacity 180ms ease, transform 180ms ease;
+      font-family: Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
     }
 
     .toast.show {
@@ -442,17 +604,35 @@
       transform: translate(-50%, 0);
     }
 
-    @media (max-width: 720px) {
-      .brand {
-        width: min(260px, calc(100vw - 32px));
+    @media (max-width: 820px) {
+      .topbar {
+        flex-wrap: wrap;
       }
 
-      .brand p {
+      .brand p,
+      .footer {
         display: none;
+      }
+
+      .stats {
+        order: 3;
+        width: 100%;
       }
 
       .toolbar {
         gap: 7px;
+      }
+
+      .speed-control {
+        position: fixed;
+        right: 14px;
+        top: 64px;
+        width: 148px;
+        height: 38px;
+      }
+
+      .speed-control input {
+        width: 62px;
       }
 
       .tool {
@@ -460,39 +640,70 @@
         height: 39px;
       }
 
-      .guide {
-        bottom: 14px;
+      .hint {
+        bottom: 18px;
         font-size: 12px;
+      }
+
+      .cursor {
+        display: none;
       }
 
       .form-grid {
         grid-template-columns: 1fr;
       }
-
-      textarea {
-        min-height: 190px;
-      }
     }
   </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
 </head>
 <body>
-  <div class="space"></div>
-  <canvas id="sky" aria-label="故事星云"></canvas>
+  <div id="scene"></div>
 
-  <div class="chrome">
-    <header class="brand">
-      <h1>故事星云</h1>
-      <p>每颗亮星都是一段有日期的小说。靠近它，星光会变亮；点击它，故事会展开。</p>
+  <div class="overlay">
+    <header class="topbar">
+      <div class="brand">
+        <h1>故事云</h1>
+        <p>Story Cloud · 用星系收藏带日期的小说片段。收藏故事会成为更明亮的星。</p>
+      </div>
+      <div class="stats" aria-live="polite">
+        <span><strong id="storyCount">0</strong> 篇故事</span>
+        <span><strong id="favoriteCount">0</strong> 个收藏</span>
+      </div>
+      <nav class="toolbar" aria-label="星云操作">
+        <label class="speed-control" title="控制星系自动旋转速度">
+          星云速度
+          <input id="speedRange" type="range" min="0" max="100" value="16">
+        </label>
+        <button class="tool" id="addButton" type="button" title="添加故事">＋</button>
+        <button class="tool" id="listButton" type="button" title="故事时间线">☰</button>
+        <button class="tool" id="resetView" type="button" title="重置视角">◎</button>
+      </nav>
     </header>
 
-    <nav class="toolbar" aria-label="星云操作">
-      <button class="tool" id="addButton" type="button" title="添加故事">＋</button>
-      <button class="tool" id="listButton" type="button" title="故事时间线">☰</button>
-      <button class="tool" id="shuffleButton" type="button" title="重排星云">✧</button>
-    </nav>
-
-    <p class="guide">移动鼠标或手指靠近星星，亮点会轻轻回应。点击一颗亮星阅读它。</p>
+    <p class="hint">拖动鼠标环顾星云，WASD 穿行。靠近星体会显示日期，第一次点击锁定故事，第二次点击阅读。</p>
+    <footer class="footer">
+      <span>yiwansuinian · GitHub Pages · Three.js</span>
+      <span class="keys"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span><span class="key">Drag</span></span>
+    </footer>
   </div>
+
+  <svg class="connector" id="connector" aria-hidden="true">
+    <line id="connectorLine" x1="0" y1="0" x2="0" y2="0"></line>
+  </svg>
+
+  <button class="star-card" id="starCard" type="button" aria-label="打开故事">
+    <div class="date" id="cardDate"></div>
+    <h2 id="cardTitle"></h2>
+    <p id="cardHint">再次点击星星或这张卡片阅读故事</p>
+  </button>
+
+  <div class="cursor" id="cursor"></div>
 
   <aside class="drawer" id="drawer" aria-label="故事时间线">
     <div class="drawer-head">
@@ -502,11 +713,11 @@
     <div class="story-list" id="storyList"></div>
     <div class="drawer-foot">
       <button class="ghost" id="latestButton" type="button">最近一章</button>
-      <button class="ghost" id="clearButton" type="button">清空星云</button>
+      <button class="ghost" id="clearButton" type="button">清空临时</button>
     </div>
   </aside>
 
-  <div class="overlay" id="readerOverlay" aria-hidden="true">
+  <div class="modal" id="readerModal" aria-hidden="true">
     <article class="reader" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <header class="reader-head">
         <div class="reader-date" id="readerDate"></div>
@@ -520,7 +731,7 @@
     </article>
   </div>
 
-  <div class="overlay" id="composerOverlay" aria-hidden="true">
+  <div class="modal" id="composerModal" aria-hidden="true">
     <form class="composer" id="storyForm">
       <header class="composer-head">
         <h2>点亮新的星</h2>
@@ -536,6 +747,10 @@
             <input id="storyTitle" type="text" maxlength="36" placeholder="例如：雨夜重逢" required>
           </label>
         </div>
+        <label class="check-row">
+          <input id="storyFavorite" type="checkbox">
+          收藏故事，在星云中显示为更亮的星
+        </label>
         <label>
           小说故事
           <textarea id="storyText" maxlength="2600" placeholder="写下这一天的故事。它会被收进一颗新的亮星里。" required></textarea>
@@ -551,13 +766,14 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite">已点亮</div>
 
-  <script>
-    const canvas = document.querySelector("#sky");
-    const ctx = canvas.getContext("2d");
+  <script type="module">
+    import * as THREE from "three";
+
+    const sceneHost = document.querySelector("#scene");
     const drawer = document.querySelector("#drawer");
     const storyList = document.querySelector("#storyList");
-    const readerOverlay = document.querySelector("#readerOverlay");
-    const composerOverlay = document.querySelector("#composerOverlay");
+    const readerModal = document.querySelector("#readerModal");
+    const composerModal = document.querySelector("#composerModal");
     const readerDate = document.querySelector("#readerDate");
     const readerTitle = document.querySelector("#readerTitle");
     const readerBody = document.querySelector("#readerBody");
@@ -565,48 +781,77 @@
     const storyDate = document.querySelector("#storyDate");
     const storyTitle = document.querySelector("#storyTitle");
     const storyText = document.querySelector("#storyText");
+    const storyFavorite = document.querySelector("#storyFavorite");
+    const storyCount = document.querySelector("#storyCount");
+    const favoriteCount = document.querySelector("#favoriteCount");
+    const speedRange = document.querySelector("#speedRange");
+    const starCard = document.querySelector("#starCard");
+    const cardDate = document.querySelector("#cardDate");
+    const cardTitle = document.querySelector("#cardTitle");
+    const connector = document.querySelector("#connector");
+    const connectorLine = document.querySelector("#connectorLine");
+    const cursor = document.querySelector("#cursor");
     const toast = document.querySelector("#toast");
 
-    const storageKey = "story-nebula-shiyun-v1";
-    const palette = ["#ffd878", "#ff7fa8", "#8fe7ff", "#9cf5cf", "#c2adff", "#ffd0a8"];
+    const localKey = "story-cloud-local-v2";
+    const speedKey = "story-cloud-speed-v2";
+    const palette = [0xd8c89a, 0xd8835f, 0xc9b28b, 0xf1dfb2, 0xe1a77f];
+    const quality = getQualityProfile();
     const samples = [
       {
+        id: "train-terminal",
         date: "2026-02-14",
         title: "列车尽头",
+        favorite: true,
         text: "她在末班列车的玻璃上写下他的名字。窗外的城市像被雨洗过的银器，灯光一盏一盏退后。广播说终点站快到了，可她知道真正抵达的地方，是多年以后再次想起这一夜。"
       },
       {
-        date: "2026-04-03",
-        title: "潮汐来信",
-        text: "海边邮局只在凌晨开门。少年把一封没有地址的信投进蓝色邮箱，信封里夹着一枚贝壳。第二天，潮水退去，沙滩上出现一行字：我也记得那个夏天。"
-      },
-      {
-        date: "2026-06-19",
-        title: "月台雪",
-        text: "雪落在空无一人的月台上，像许多没有寄出的句子。她撑着黑伞回头，看见远处有个人举起手，动作很轻，却像把整个冬天都重新点亮了。"
-      },
-      {
+        id: "nebula-awakens",
         date: "2026-07-04",
         title: "星云醒来",
+        favorite: true,
         text: "他把一整章故事放进黑夜。文字没有落到纸上，而是散成微亮的星尘，沿着看不见的轨道慢慢旋转。每当有人靠近，那些句子就像认出了读者，重新排列成可以被触摸的光。"
       }
     ];
 
     const state = {
-      width: 0,
-      height: 0,
-      dpr: 1,
-      dust: [],
-      stories: loadStories(),
-      activeId: null,
+      stories: [],
+      storyObjects: new Map(),
+      selectedId: null,
       hoverId: null,
-      pointer: { x: -9999, y: -9999 },
-      drift: { x: 0, y: 0 }
+      pointer: new THREE.Vector2(99, 99),
+      screenPointer: { x: -9999, y: -9999 },
+      keys: new Set(),
+      dragging: false,
+      dragMoved: 0,
+      lastMouse: { x: 0, y: 0 },
+      yaw: 0,
+      pitch: -0.12,
+      speed: Number(localStorage.getItem(speedKey) || 16) / 100,
+      last: 0
     };
 
-    function rand(min, max) {
-      return min + Math.random() * (max - min);
-    }
+    speedRange.value = String(Math.round(state.speed * 100));
+
+    const renderer = new THREE.WebGLRenderer({ antialias: quality.antialias, alpha: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality.pixelRatio));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x07080f, 1);
+    sceneHost.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07080f, 0.00042);
+
+    const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 9000);
+    camera.position.set(0, 150, 1200);
+
+    const galaxy = new THREE.Group();
+    const storyLayer = new THREE.Group();
+    scene.add(galaxy, storyLayer);
+
+    const raycaster = new THREE.Raycaster();
+    const tempVector = new THREE.Vector3();
+    const clock = new THREE.Clock();
 
     function today() {
       return new Date().toISOString().slice(0, 10);
@@ -616,98 +861,8 @@
       return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
     }
 
-    function loadStories() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(storageKey)) || [];
-        return saved.map(normalizeStory).filter(Boolean);
-      } catch {
-        return [];
-      }
-    }
-
-    function saveStories() {
-      localStorage.setItem(storageKey, JSON.stringify(state.stories.slice(-100)));
-    }
-
-    function normalizeStory(raw) {
-      const title = String(raw.title || "").trim();
-      const text = String(raw.text || "").trim();
-      if (!title || !text) return null;
-      const color = raw.color || palette[Math.floor(Math.random() * palette.length)];
-      return {
-        id: raw.id || id(),
-        date: raw.date || today(),
-        title,
-        text,
-        color,
-        x: Number(raw.x) || 0,
-        y: Number(raw.y) || 0,
-        radius: Number(raw.radius) || rand(68, 112),
-        phase: Number(raw.phase) || rand(0, Math.PI * 2),
-        spin: Number(raw.spin) || rand(-0.00018, 0.00018),
-        words: Array.isArray(raw.words) && raw.words.length ? raw.words.slice(0, 120) : extractWords(title, text),
-        born: performance.now()
-      };
-    }
-
-    function extractWords(title, text) {
-      const source = `${title} ${text}`;
-      const clean = source.replace(/[，。！？、；：“”‘’（）《》,.!?;:"'()[\]\n\r]/g, " ");
-      const chunks = clean.match(/[\u4e00-\u9fff]{1,4}|[a-zA-Z0-9]{2,}/g) || [];
-      const words = chunks.map((part) => part.trim()).filter(Boolean);
-      if (words.length >= 16) return words.slice(0, 96);
-      return [...source].filter((char) => char.trim()).slice(0, 80);
-    }
-
-    function resize() {
-      state.dpr = Math.min(window.devicePixelRatio || 1, 2);
-      state.width = window.innerWidth;
-      state.height = window.innerHeight;
-      canvas.width = Math.floor(state.width * state.dpr);
-      canvas.height = Math.floor(state.height * state.dpr);
-      ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-      seedDust();
-      containStories();
-    }
-
-    function seedDust() {
-      const count = Math.round(Math.min(1100, Math.max(420, state.width * state.height / 1500)));
-      state.dust = Array.from({ length: count }, (_, index) => {
-        const angle = rand(0, Math.PI * 2);
-        const spread = Math.pow(Math.random(), 0.56);
-        return {
-          index,
-          angle,
-          spread,
-          x: rand(0, state.width),
-          y: rand(0, state.height),
-          r: rand(0.35, 1.55),
-          alpha: rand(0.14, 0.8),
-          speed: rand(0.00008, 0.00028),
-          phase: rand(0, Math.PI * 2)
-        };
-      });
-    }
-
-    function containStories() {
-      const marginX = Math.min(210, Math.max(42, state.width * 0.14));
-      const marginY = Math.min(140, Math.max(48, state.height * 0.16));
-      state.stories.forEach((story, index) => {
-        if (!story.x || !story.y) {
-          const total = Math.max(1, state.stories.length);
-          const angle = (index / total) * Math.PI * 2 - Math.PI / 2;
-          const ringX = Math.max(80, state.width * 0.26);
-          const ringY = Math.max(80, state.height * 0.22);
-          story.x = state.width * 0.52 + Math.cos(angle) * ringX + rand(-40, 40);
-          story.y = state.height * 0.52 + Math.sin(angle) * ringY + rand(-34, 34);
-        }
-        story.x = Math.min(Math.max(story.x, marginX), Math.max(marginX, state.width - marginX));
-        story.y = Math.min(Math.max(story.y, marginY), Math.max(marginY, state.height - marginY));
-      });
-    }
-
-    function sortStories() {
-      state.stories.sort((a, b) => a.date.localeCompare(b.date));
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
     }
 
     function formatDate(value) {
@@ -723,18 +878,239 @@
       showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1400);
     }
 
+    function normalizeStory(raw, source = "public") {
+      const title = String(raw.title || "").trim();
+      const text = String(raw.text || "").trim();
+      if (!title || !text) return null;
+      return {
+        id: raw.id || id(),
+        source: raw.source || source,
+        date: raw.date || today(),
+        title,
+        text,
+        favorite: Boolean(raw.favorite),
+        x: Number(raw.x) || 0,
+        y: Number(raw.y) || 0,
+        z: Number(raw.z) || 0,
+        color: raw.color || null
+      };
+    }
+
+    function loadLocalStories() {
+      try {
+        return (JSON.parse(localStorage.getItem(localKey)) || [])
+          .map((item) => normalizeStory(item, "local"))
+          .filter(Boolean);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveLocalStories() {
+      const localStories = state.stories.filter((story) => story.source === "local");
+      localStorage.setItem(localKey, JSON.stringify(localStories));
+    }
+
+    async function loadStories() {
+      let publicStories = [];
+      try {
+        const response = await fetch(`stories.json?v=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("missing stories.json");
+        const data = await response.json();
+        publicStories = Array.isArray(data) ? data : [];
+      } catch {
+        publicStories = samples;
+      }
+
+      state.stories = [
+        ...publicStories.map((item) => normalizeStory(item, "public")).filter(Boolean),
+        ...loadLocalStories()
+      ];
+      placeStories();
+      rebuildStories();
+      renderTimeline();
+      updateStats();
+    }
+
+    function makeGalaxy() {
+      galaxy.clear();
+
+      const disk = makeSpiralPoints(quality.disk, quality.mobile ? 0.64 : 0.76, quality.mobile ? 1.45 : 1.7);
+      galaxy.add(disk);
+
+      const core = makeCloudPoints(quality.core, 0, 0, 0, 440, 0xd8c89a, quality.mobile ? 0.34 : 0.44, quality.mobile ? 2.8 : 3.4);
+      galaxy.add(core);
+
+      galaxy.add(makeCloudPoints(quality.cloud, -1450, 180, -620, 540, 0xd8835f, quality.mobile ? 0.16 : 0.22, quality.mobile ? 4.1 : 5.2));
+      galaxy.add(makeCloudPoints(quality.cloud, 1220, -120, 880, 620, 0xc9b28b, quality.mobile ? 0.15 : 0.2, quality.mobile ? 4.4 : 5.6));
+      if (quality.cloudCount > 2) {
+        galaxy.add(makeCloudPoints(2200, 420, 320, -1500, 460, 0xf1dfb2, 0.16, 4.8));
+      }
+      galaxy.add(makeFieldStars(quality.field));
+    }
+
+    function makeSpiralPoints(count, opacity, size) {
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const color = new THREE.Color();
+      for (let i = 0; i < count; i++) {
+        const arm = i % 5;
+        const t = Math.random();
+        const angle = arm * Math.PI * 0.4 + t * Math.PI * 8.6 + rand(-0.42, 0.42);
+        const radius = 120 + Math.pow(t, 0.72) * 2600 + rand(-70, 70);
+        const y = rand(-38, 38) * (1 + t * 2.8);
+        positions[i * 3] = Math.cos(angle) * radius;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = Math.sin(angle) * radius * 0.72;
+
+        color.set(i % 17 === 0 ? 0xd8835f : i % 11 === 0 ? 0xf1dfb2 : 0xc9b28b);
+        const brightness = rand(0.5, 1.0);
+        colors[i * 3] = color.r * brightness;
+        colors[i * 3 + 1] = color.g * brightness;
+        colors[i * 3 + 2] = color.b * brightness;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      return new THREE.Points(geometry, new THREE.PointsMaterial({
+        size,
+        vertexColors: true,
+        transparent: true,
+        opacity,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      }));
+    }
+
+    function makeCloudPoints(count, cx, cy, cz, spread, colorValue, opacity, size) {
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const color = new THREE.Color(colorValue);
+      for (let i = 0; i < count; i++) {
+        positions[i * 3] = cx + rand(-spread, spread);
+        positions[i * 3 + 1] = cy + rand(-spread * 0.38, spread * 0.38);
+        positions[i * 3 + 2] = cz + rand(-spread, spread);
+        const brightness = rand(0.35, 1);
+        colors[i * 3] = color.r * brightness;
+        colors[i * 3 + 1] = color.g * brightness;
+        colors[i * 3 + 2] = color.b * brightness;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      return new THREE.Points(geometry, new THREE.PointsMaterial({
+        size,
+        vertexColors: true,
+        transparent: true,
+        opacity,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      }));
+    }
+
+    function makeFieldStars(count) {
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const color = new THREE.Color(0xf8ecd1);
+      for (let i = 0; i < count; i++) {
+        const shell = rand(3300, 7600);
+        const theta = rand(0, Math.PI * 2);
+        const phi = Math.acos(rand(-1, 1));
+        positions[i * 3] = Math.sin(phi) * Math.cos(theta) * shell;
+        positions[i * 3 + 1] = Math.cos(phi) * shell * 0.72;
+        positions[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * shell;
+        const b = rand(0.28, 0.9);
+        colors[i * 3] = color.r * b;
+        colors[i * 3 + 1] = color.g * b;
+        colors[i * 3 + 2] = color.b * b;
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      return new THREE.Points(geometry, new THREE.PointsMaterial({
+        size: 1.9,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.68,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      }));
+    }
+
+    function makeStarTexture(colorValue, favorite) {
+      const size = 128;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext("2d");
+      const color = new THREE.Color(colorValue);
+      const rgb = `${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}`;
+      const gradient = context.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gradient.addColorStop(0, "rgba(255, 250, 218, 1)");
+      gradient.addColorStop(0.1, `rgba(${rgb}, ${favorite ? 0.8 : 0.56})`);
+      gradient.addColorStop(0.24, `rgba(${rgb}, ${favorite ? 0.14 : 0.07})`);
+      gradient.addColorStop(1, `rgba(${rgb}, 0)`);
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, size, size);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    function placeStories() {
+      state.stories.forEach((story, index) => {
+        if (story.x || story.y || story.z) return;
+        const total = Math.max(1, state.stories.length);
+        const angle = (index / total) * Math.PI * 2.0 + index * 0.68;
+        const radius = 460 + index * 110 + rand(-70, 70);
+        story.x = Math.cos(angle) * radius;
+        story.y = rand(-170, 190);
+        story.z = Math.sin(angle) * radius * 0.72;
+      });
+    }
+
+    function rebuildStories() {
+      storyLayer.clear();
+      state.storyObjects.clear();
+      state.stories.forEach((story, index) => {
+        const colorValue = story.color ? Number(story.color) : palette[index % palette.length];
+        const texture = makeStarTexture(colorValue, story.favorite);
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: story.favorite ? 0.92 : 0.64,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending
+        });
+        const sprite = new THREE.Sprite(material);
+        const scale = story.favorite ? 42 : 24;
+        sprite.scale.set(scale, scale, 1);
+        sprite.position.set(story.x, story.y, story.z);
+        sprite.userData.storyId = story.id;
+        sprite.userData.baseScale = scale;
+        sprite.userData.favorite = story.favorite;
+        storyLayer.add(sprite);
+        state.storyObjects.set(story.id, sprite);
+      });
+    }
+
     function renderTimeline() {
-      sortStories();
+      state.stories.sort((a, b) => a.date.localeCompare(b.date));
       storyList.innerHTML = "";
       state.stories.forEach((story) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "story-button";
-        if (story.id === state.activeId) button.classList.add("active");
+        if (story.id === state.selectedId) button.classList.add("active");
 
         const date = document.createElement("div");
-        date.className = "date";
-        date.textContent = formatDate(story.date);
+        date.className = "story-date";
+        date.textContent = `${formatDate(story.date)}${story.favorite ? " · 收藏" : ""}`;
 
         const title = document.createElement("div");
         title.className = "story-title";
@@ -747,312 +1123,422 @@
         button.append(date, title, excerpt);
         button.addEventListener("click", () => {
           drawer.classList.remove("open");
-          openStory(story.id);
+          selectStory(story.id);
+          flyToStory(story.id);
         });
         storyList.append(button);
       });
     }
 
-    function addStory(date, title, text) {
+    function updateStats() {
+      storyCount.textContent = String(state.stories.length);
+      favoriteCount.textContent = String(state.stories.filter((story) => story.favorite).length);
+    }
+
+    function addStory(date, title, text, favorite) {
+      const index = state.stories.length;
+      const angle = index * 1.82 + rand(-0.4, 0.4);
       const story = normalizeStory({
+        id: id(),
+        source: "local",
         date,
         title,
         text,
-        color: palette[Math.floor(Math.random() * palette.length)],
-        radius: rand(74, 118),
-        phase: rand(0, Math.PI * 2),
-        spin: rand(-0.00022, 0.00022)
-      });
+        favorite,
+        x: Math.cos(angle) * rand(540, 1350),
+        y: rand(-210, 260),
+        z: Math.sin(angle) * rand(420, 1050)
+      }, "local");
       state.stories.push(story);
-      containStories();
-      state.activeId = story.id;
-      saveStories();
+      saveLocalStories();
+      rebuildStories();
       renderTimeline();
+      updateStats();
+      selectStory(story.id);
       showToast("新的星亮起来了");
+    }
+
+    function selectStory(storyId) {
+      state.selectedId = storyId;
+      const story = state.stories.find((item) => item.id === storyId);
+      if (!story) return;
+      cardDate.textContent = formatDate(story.date);
+      cardTitle.textContent = story.title;
+      starCard.classList.add("show");
+      updateSelectionOverlay();
+      renderTimeline();
+    }
+
+    function clearSelection() {
+      state.selectedId = null;
+      starCard.classList.remove("show");
+      connector.classList.remove("show");
+      renderTimeline();
     }
 
     function openStory(storyId) {
       const story = state.stories.find((item) => item.id === storyId);
       if (!story) return;
-      state.activeId = story.id;
+      state.selectedId = story.id;
       readerDate.textContent = formatDate(story.date);
       readerTitle.textContent = story.title;
       readerBody.textContent = story.text;
-      readerOverlay.classList.add("open");
-      readerOverlay.setAttribute("aria-hidden", "false");
+      readerModal.classList.add("open");
+      readerModal.setAttribute("aria-hidden", "false");
       renderTimeline();
     }
 
     function closeReader() {
-      readerOverlay.classList.remove("open");
-      readerOverlay.setAttribute("aria-hidden", "true");
+      readerModal.classList.remove("open");
+      readerModal.setAttribute("aria-hidden", "true");
     }
 
     function openComposer() {
       storyDate.value = today();
-      composerOverlay.classList.add("open");
-      composerOverlay.setAttribute("aria-hidden", "false");
+      storyFavorite.checked = false;
+      composerModal.classList.add("open");
+      composerModal.setAttribute("aria-hidden", "false");
       setTimeout(() => storyTitle.focus(), 80);
     }
 
     function closeComposer() {
-      composerOverlay.classList.remove("open");
-      composerOverlay.setAttribute("aria-hidden", "true");
+      composerModal.classList.remove("open");
+      composerModal.setAttribute("aria-hidden", "true");
     }
 
-    function drawSpace(now) {
-      ctx.clearRect(0, 0, state.width, state.height);
-
-      const cx = state.width * 0.52 + state.drift.x;
-      const cy = state.height * 0.51 + state.drift.y;
-      const max = Math.max(state.width, state.height);
-      const nebula = ctx.createRadialGradient(cx, cy, 0, cx, cy, max * 0.62);
-      nebula.addColorStop(0, "rgba(255, 230, 166, 0.18)");
-      nebula.addColorStop(0.2, "rgba(143, 231, 255, 0.12)");
-      nebula.addColorStop(0.48, "rgba(255, 127, 168, 0.08)");
-      nebula.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(-0.45 + Math.sin(now * 0.00008) * 0.05);
-      ctx.scale(1.7, 0.29);
-      ctx.fillStyle = nebula;
-      ctx.beginPath();
-      ctx.arc(0, 0, max * 0.47, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(now * 0.00003);
-      for (const dust of state.dust) {
-        const angle = dust.angle + now * dust.speed;
-        const band = max * 0.47 * dust.spread;
-        const x = Math.cos(angle) * band * 1.45 + Math.sin(dust.phase + now * 0.0006) * 10;
-        const y = Math.sin(angle) * band * 0.24 + Math.cos(dust.phase + now * 0.0005) * 7;
-        const twinkle = Math.sin(now * 0.003 + dust.phase) * 0.22;
-        ctx.globalAlpha = Math.max(0.03, dust.alpha + twinkle);
-        ctx.fillStyle = dust.index % 13 === 0 ? "#ffd878" : "#fff7e8";
-        ctx.beginPath();
-        ctx.arc(x, y, dust.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-      ctx.globalAlpha = 1;
+    function getProjected(storyId) {
+      const object = state.storyObjects.get(storyId);
+      if (!object) return null;
+      tempVector.copy(object.position).project(camera);
+      const x = (tempVector.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-tempVector.y * 0.5 + 0.5) * window.innerHeight;
+      const visible = tempVector.z > -1 && tempVector.z < 1;
+      return { x, y, visible };
     }
 
-    function drawConnections() {
-      if (state.stories.length < 2) return;
-      ctx.save();
-      ctx.globalAlpha = 0.18;
-      ctx.lineWidth = 1;
-      for (let i = 0; i < state.stories.length - 1; i++) {
-        const a = state.stories[i];
-        const b = state.stories[i + 1];
-        const gradient = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-        gradient.addColorStop(0, a.color);
-        gradient.addColorStop(1, b.color);
-        ctx.strokeStyle = gradient;
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
+    function updateSelectionOverlay() {
+      const id = state.selectedId || state.hoverId;
+      const story = state.stories.find((item) => item.id === id);
+      if (!story) {
+        connector.classList.remove("show");
+        return;
       }
-      ctx.restore();
+      const projected = getProjected(story.id);
+      if (!projected || !projected.visible) {
+        connector.classList.remove("show");
+        return;
+      }
+      const cardX = Math.min(window.innerWidth - 306, Math.max(18, projected.x + 36));
+      const cardY = Math.min(window.innerHeight - 145, Math.max(86, projected.y - 36));
+      starCard.style.left = `${cardX}px`;
+      starCard.style.top = `${cardY}px`;
+      connectorLine.setAttribute("x1", projected.x);
+      connectorLine.setAttribute("y1", projected.y);
+      connectorLine.setAttribute("x2", cardX + 12);
+      connectorLine.setAttribute("y2", cardY + 22);
+      connector.classList.add("show");
     }
 
-    function drawStory(story, now) {
-      const dx = state.pointer.x - story.x;
-      const dy = state.pointer.y - story.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const active = state.activeId === story.id;
-      const hover = distance < story.radius * 0.95;
-      const energy = active ? 1 : hover ? 0.82 : 0;
-      const age = Math.min(1, (now - story.born) / 1100);
-      const breathe = 1 + Math.sin(now * 0.0018 + story.phase) * 0.08 + energy * 0.2;
-      const radius = story.radius * breathe * (0.55 + age * 0.45);
-
-      if (hover) state.hoverId = story.id;
-
-      const glow = ctx.createRadialGradient(story.x, story.y, 0, story.x, story.y, radius * 1.65);
-      glow.addColorStop(0, story.color + "d8");
-      glow.addColorStop(0.16, story.color + "62");
-      glow.addColorStop(0.58, story.color + "12");
-      glow.addColorStop(1, story.color + "00");
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(story.x, story.y, radius * 1.65, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(story.x, story.y);
-      ctx.rotate(story.phase + now * story.spin);
-      ctx.globalCompositeOperation = "lighter";
-
-      for (let i = 0; i < 18; i++) {
-        const t = i / 17;
-        const angle = t * Math.PI * 2 + now * 0.00035 + story.phase;
-        const orbit = 12 + t * radius * 0.56 + Math.sin(now * 0.001 + i) * 2.5;
-        const x = Math.cos(angle * (i % 2 ? -1 : 1)) * orbit;
-        const y = Math.sin(angle) * orbit * 0.46;
-        const alpha = 0.12 + (1 - t) * 0.22 + energy * 0.22 + Math.sin(now * 0.004 + i) * 0.05;
-        ctx.globalAlpha = Math.max(0.06, Math.min(0.7, alpha));
-        ctx.fillStyle = i % 4 === 0 ? "#fff5cd" : story.color;
-        ctx.beginPath();
-        ctx.arc(x, y, i % 5 === 0 ? 1.35 : 0.85, 0, Math.PI * 2);
-        ctx.fill();
+    function findStoryUnderPointer() {
+      const results = [];
+      for (const [storyId, object] of state.storyObjects.entries()) {
+        const projected = getProjected(storyId);
+        if (!projected || !projected.visible) continue;
+        const dx = state.screenPointer.x - projected.x;
+        const dy = state.screenPointer.y - projected.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const story = state.stories.find((item) => item.id === storyId);
+        const hitRadius = story?.favorite ? 17 : 11;
+        if (distance <= hitRadius) {
+          results.push({ storyId, distance, z: tempVector.z });
+        }
       }
+      results.sort((a, b) => a.distance - b.distance || a.z - b.z);
+      return results[0]?.storyId || null;
+    }
 
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-      ctx.shadowColor = story.color;
-      ctx.shadowBlur = 18 + energy * 22;
-      ctx.fillStyle = "#fff5cd";
-      ctx.beginPath();
-      ctx.arc(0, 0, 4.2 + energy * 3.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = story.color;
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.7 + energy * 0.25;
-      ctx.beginPath();
-      ctx.arc(0, 0, 12 + energy * 8, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
+    function updateCursor(x, y) {
+      cursor.style.left = `${x}px`;
+      cursor.style.top = `${y}px`;
+      cursor.classList.toggle("hot", Boolean(state.hoverId));
+    }
 
-      ctx.globalAlpha = 1;
+    function flyToStory(storyId) {
+      const object = state.storyObjects.get(storyId);
+      if (!object) return;
+      const target = object.position.clone();
+      const direction = target.clone().sub(camera.position).normalize();
+      camera.position.copy(target.clone().sub(direction.multiplyScalar(720)));
+      camera.lookAt(target);
+      const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
+      state.yaw = euler.y;
+      state.pitch = euler.x;
+    }
+
+    function resetView() {
+      camera.position.set(0, 150, 1200);
+      state.yaw = 0;
+      state.pitch = -0.12;
+      camera.rotation.set(state.pitch, state.yaw, 0, "YXZ");
+      clearSelection();
+    }
+
+    function updateCamera(delta) {
+      const speed = 520 * delta;
+      const forward = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
+      const right = new THREE.Vector3(1, 0, 0).applyEuler(camera.rotation);
+      forward.y = 0;
+      right.y = 0;
+      forward.normalize();
+      right.normalize();
+
+      if (state.keys.has("w")) camera.position.addScaledVector(forward, speed);
+      if (state.keys.has("s")) camera.position.addScaledVector(forward, -speed);
+      if (state.keys.has("a")) camera.position.addScaledVector(right, -speed);
+      if (state.keys.has("d")) camera.position.addScaledVector(right, speed);
+      if (state.keys.has("q")) camera.position.y -= speed * 0.72;
+      if (state.keys.has("e")) camera.position.y += speed * 0.72;
+
+      camera.position.x = THREE.MathUtils.clamp(camera.position.x, -3600, 3600);
+      camera.position.y = THREE.MathUtils.clamp(camera.position.y, -1400, 1800);
+      camera.position.z = THREE.MathUtils.clamp(camera.position.z, -3600, 4200);
+      camera.rotation.set(state.pitch, state.yaw, 0, "YXZ");
     }
 
     function animate(now) {
-      state.hoverId = null;
-      state.drift.x += (state.pointer.x - state.width / 2) * 0.00002 - state.drift.x * 0.02;
-      state.drift.y += (state.pointer.y - state.height / 2) * 0.00002 - state.drift.y * 0.02;
-      drawSpace(now);
-      drawConnections();
-      state.stories.forEach((story) => drawStory(story, now));
+      const delta = Math.min(0.04, clock.getDelta());
+      galaxy.rotation.y += delta * 0.012 * state.speed;
+      galaxy.rotation.z = Math.sin(now * 0.00004) * (quality.mobile ? 0.012 : 0.025);
+      storyLayer.rotation.y += delta * 0.012 * state.speed;
+
+      updateCamera(delta);
+      updateHover();
+      pulseStories(now);
+      updateSelectionOverlay();
+      renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
 
-    function storyAt(x, y) {
-      let best = null;
-      let bestDistance = Infinity;
-      for (const story of state.stories) {
-        const dx = x - story.x;
-        const dy = y - story.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < story.radius * 0.95 && distance < bestDistance) {
-          best = story;
-          bestDistance = distance;
-        }
+    function pulseStories(now) {
+      for (const [storyId, object] of state.storyObjects.entries()) {
+        const active = storyId === state.selectedId;
+        const hover = storyId === state.hoverId;
+        const base = object.userData.baseScale;
+        const pulse = 1 + Math.sin(now * 0.0015 + base) * 0.035;
+        const lift = active ? 1.35 : hover ? 1.18 : 1;
+        object.scale.setScalar(base * pulse * lift);
+        object.material.opacity = object.userData.favorite ? 0.9 : 0.58;
+        if (active || hover) object.material.opacity = 1;
       }
-      return best;
     }
 
-    document.querySelector("#addButton").addEventListener("click", openComposer);
-    document.querySelector("#listButton").addEventListener("click", () => drawer.classList.add("open"));
-    document.querySelector("#closeDrawer").addEventListener("click", () => drawer.classList.remove("open"));
-    document.querySelector("#shuffleButton").addEventListener("click", () => {
-      state.stories.forEach((story) => {
-        story.x = 0;
-        story.y = 0;
-      });
-      containStories();
-      saveStories();
-      showToast("星云已重新排列");
-    });
-
-    document.querySelector("#latestButton").addEventListener("click", () => {
-      const latest = [...state.stories].sort((a, b) => a.date.localeCompare(b.date)).at(-1);
-      if (latest) {
-        drawer.classList.remove("open");
-        openStory(latest.id);
+    function updateHover() {
+      state.hoverId = findStoryUnderPointer();
+      if (state.hoverId && !state.selectedId) {
+        const story = state.stories.find((item) => item.id === state.hoverId);
+        if (story) {
+          cardDate.textContent = formatDate(story.date);
+          cardTitle.textContent = story.title;
+          starCard.classList.add("show");
+        }
+      } else if (!state.selectedId) {
+        starCard.classList.remove("show");
+        connector.classList.remove("show");
       }
-    });
+    }
 
-    document.querySelector("#clearButton").addEventListener("click", () => {
-      state.stories = [];
-      state.activeId = null;
-      saveStories();
+    function showStoryFromPointer() {
+      const storyId = findStoryUnderPointer();
+      if (!storyId) {
+        clearSelection();
+        return;
+      }
+      if (state.selectedId === storyId) {
+        openStory(storyId);
+      } else {
+        selectStory(storyId);
+      }
+    }
+
+    function deleteSelectedLocalStory() {
+      if (!state.selectedId) return;
+      const story = state.stories.find((item) => item.id === state.selectedId);
+      if (story?.source === "public") {
+        showToast("公开故事请修改 stories.json");
+        return;
+      }
+      state.stories = state.stories.filter((item) => item.id !== state.selectedId);
+      state.selectedId = null;
+      saveLocalStories();
+      rebuildStories();
       renderTimeline();
-      drawer.classList.remove("open");
-      showToast("星云已清空");
-    });
-
-    document.querySelector("#closeReader").addEventListener("click", closeReader);
-    document.querySelector("#cancelComposer").addEventListener("click", closeComposer);
-
-    document.querySelector("#deleteButton").addEventListener("click", () => {
-      if (!state.activeId) return;
-      state.stories = state.stories.filter((story) => story.id !== state.activeId);
-      state.activeId = state.stories.at(-1)?.id || null;
-      saveStories();
-      renderTimeline();
+      updateStats();
       closeReader();
-      showToast("已删除");
-    });
+      showToast("已删除临时故事");
+    }
 
-    document.querySelector("#sampleButton").addEventListener("click", () => {
-      const sample = samples[Math.floor(Math.random() * samples.length)];
-      storyDate.value = sample.date;
-      storyTitle.value = sample.title;
-      storyText.value = sample.text;
-      showToast("示例已填入");
-    });
-
-    storyForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      addStory(storyDate.value, storyTitle.value.trim(), storyText.value.trim());
-      storyTitle.value = "";
-      storyText.value = "";
-      closeComposer();
-    });
-
-    canvas.addEventListener("pointermove", (event) => {
-      state.pointer.x = event.clientX;
-      state.pointer.y = event.clientY;
-    });
-
-    canvas.addEventListener("pointerleave", () => {
-      state.pointer.x = -9999;
-      state.pointer.y = -9999;
-    });
-
-    canvas.addEventListener("click", (event) => {
-      const story = storyAt(event.clientX, event.clientY);
-      if (story) openStory(story.id);
-    });
-
-    readerOverlay.addEventListener("click", (event) => {
-      if (event.target === readerOverlay) closeReader();
-    });
-
-    composerOverlay.addEventListener("click", (event) => {
-      if (event.target === composerOverlay) closeComposer();
-    });
-
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        closeReader();
-        closeComposer();
+    function bindEvents() {
+      document.querySelector("#addButton").addEventListener("click", openComposer);
+      document.querySelector("#listButton").addEventListener("click", () => drawer.classList.add("open"));
+      document.querySelector("#closeDrawer").addEventListener("click", () => drawer.classList.remove("open"));
+      document.querySelector("#resetView").addEventListener("click", resetView);
+      document.querySelector("#latestButton").addEventListener("click", () => {
+        const latest = [...state.stories].sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+        if (!latest) return;
         drawer.classList.remove("open");
-      }
-    });
+        selectStory(latest.id);
+        flyToStory(latest.id);
+      });
+      document.querySelector("#clearButton").addEventListener("click", () => {
+        state.stories = state.stories.filter((story) => story.source === "public");
+        state.selectedId = null;
+        saveLocalStories();
+        rebuildStories();
+        renderTimeline();
+        updateStats();
+        drawer.classList.remove("open");
+        showToast("已清空本机临时故事");
+      });
+      document.querySelector("#closeReader").addEventListener("click", closeReader);
+      document.querySelector("#cancelComposer").addEventListener("click", closeComposer);
+      document.querySelector("#deleteButton").addEventListener("click", deleteSelectedLocalStory);
+      document.querySelector("#sampleButton").addEventListener("click", () => {
+        const sample = samples[Math.floor(Math.random() * samples.length)];
+        storyDate.value = sample.date;
+        storyTitle.value = sample.title;
+        storyText.value = sample.text;
+        storyFavorite.checked = Boolean(sample.favorite);
+        showToast("示例已填入");
+      });
+      storyForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        addStory(storyDate.value, storyTitle.value.trim(), storyText.value.trim(), storyFavorite.checked);
+        storyTitle.value = "";
+        storyText.value = "";
+        storyFavorite.checked = false;
+        closeComposer();
+      });
+      starCard.addEventListener("click", () => {
+        if (state.selectedId) openStory(state.selectedId);
+        else if (state.hoverId) {
+          selectStory(state.hoverId);
+          openStory(state.hoverId);
+        }
+      });
+      speedRange.addEventListener("input", () => {
+        state.speed = Number(speedRange.value) / 100;
+        localStorage.setItem(speedKey, String(speedRange.value));
+      });
+      readerModal.addEventListener("click", (event) => {
+        if (event.target === readerModal) closeReader();
+      });
+      composerModal.addEventListener("click", (event) => {
+        if (event.target === composerModal) closeComposer();
+      });
+      window.addEventListener("resize", resize);
+      window.addEventListener("keydown", (event) => {
+        const key = event.key.toLowerCase();
+        if (["w", "a", "s", "d", "q", "e"].includes(key)) {
+          state.keys.add(key);
+          event.preventDefault();
+        }
+        if (event.key === "Escape") {
+          closeReader();
+          closeComposer();
+          drawer.classList.remove("open");
+          clearSelection();
+        }
+      });
+      window.addEventListener("keyup", (event) => {
+        state.keys.delete(event.key.toLowerCase());
+      });
+      renderer.domElement.addEventListener("pointermove", onPointerMove);
+      renderer.domElement.addEventListener("pointerdown", onPointerDown);
+      renderer.domElement.addEventListener("pointerup", onPointerUp);
+      renderer.domElement.addEventListener("click", () => {
+        if (state.dragMoved > 8) return;
+        showStoryFromPointer();
+      });
+    }
 
-    window.addEventListener("resize", resize);
+    function onPointerMove(event) {
+      state.screenPointer.x = event.clientX;
+      state.screenPointer.y = event.clientY;
+      state.pointer.x = event.clientX / window.innerWidth * 2 - 1;
+      state.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      updateCursor(event.clientX, event.clientY);
+
+      if (!state.dragging) return;
+      const dx = event.clientX - state.lastMouse.x;
+      const dy = event.clientY - state.lastMouse.y;
+      state.dragMoved += Math.abs(dx) + Math.abs(dy);
+      state.yaw -= dx * 0.0032;
+      state.pitch -= dy * 0.0025;
+      state.pitch = THREE.MathUtils.clamp(state.pitch, -1.15, 1.05);
+      state.lastMouse.x = event.clientX;
+      state.lastMouse.y = event.clientY;
+    }
+
+    function onPointerDown(event) {
+      state.dragging = true;
+      state.dragMoved = 0;
+      state.lastMouse.x = event.clientX;
+      state.lastMouse.y = event.clientY;
+      renderer.domElement.setPointerCapture(event.pointerId);
+    }
+
+    function onPointerUp(event) {
+      state.dragging = false;
+      renderer.domElement.releasePointerCapture(event.pointerId);
+    }
+
+    function updateCursor(x, y) {
+      if (quality.mobile) return;
+      cursor.style.left = `${x}px`;
+      cursor.style.top = `${y}px`;
+      cursor.classList.toggle("hot", Boolean(state.hoverId));
+    }
+
+    function resize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality.pixelRatio));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
 
     storyDate.value = today();
+    makeGalaxy();
+    bindEvents();
+    loadStories();
     resize();
-    if (!state.stories.length) {
-      samples.forEach((sample) => {
-        state.stories.push(normalizeStory(sample));
-      });
-      containStories();
-      saveStories();
-    }
-    sortStories();
-    state.activeId = state.stories.at(-1)?.id || null;
-    renderTimeline();
     requestAnimationFrame(animate);
   </script>
 </body>
 </html>
+    function getQualityProfile() {
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const narrow = window.matchMedia("(max-width: 820px)").matches;
+      const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 4;
+      const mobile = coarse || narrow || lowMemory;
+      return mobile
+        ? {
+            mobile: true,
+            antialias: false,
+            pixelRatio: 1.25,
+            disk: 10500,
+            core: 1400,
+            cloud: 900,
+            field: 3200,
+            cloudCount: 2
+          }
+        : {
+            mobile: false,
+            antialias: true,
+            pixelRatio: 1.75,
+            disk: 26000,
+            core: 3600,
+            cloud: 2400,
+            field: 9000,
+            cloudCount: 3
+          };
+    }
