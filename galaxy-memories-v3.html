@@ -1,0 +1,1633 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>故事云</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07080f;
+      --ink: #d8c89a;
+      --ink-soft: rgba(216, 200, 154, 0.68);
+      --ink-bright: #fff3c7;
+      --line: rgba(216, 200, 154, 0.18);
+      --glass: rgba(0, 0, 0, 0.58);
+      --ember: #d8835f;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 48% 42%, rgba(42, 45, 78, 0.36), transparent 34%),
+        radial-gradient(circle at 78% 28%, rgba(216, 131, 95, 0.12), transparent 25%),
+        #07080f;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", "Songti SC", "SimSun", serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body { cursor: auto; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    input, textarea, .reader-body {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    #scene {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    #spaceCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .topbar {
+      position: absolute;
+      top: clamp(16px, 2.8vw, 32px);
+      left: clamp(16px, 3vw, 38px);
+      right: clamp(16px, 3vw, 38px);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      text-shadow: 0 0 22px rgba(0, 0, 0, 0.82);
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: var(--ink-bright);
+      font-size: clamp(36px, 5.6vw, 76px);
+      line-height: 0.92;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font: 13px/1.75 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .hud {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      pointer-events: auto;
+    }
+
+    .stats {
+      min-width: 118px;
+      color: var(--ink-bright);
+      text-align: right;
+      font: 13px/1.2 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stats strong {
+      display: block;
+      font: 500 28px/1 Georgia, "Times New Roman", serif;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tool,
+    .primary,
+    .ghost {
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .tool {
+      min-width: 42px;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--ink-bright);
+      font: 13px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      white-space: nowrap;
+    }
+
+    .icon-tool {
+      width: 42px;
+      padding: 0;
+      font-size: 18px;
+    }
+
+    .tool:hover,
+    .ghost:hover,
+    .primary:hover {
+      border-color: rgba(216, 131, 95, 0.7);
+      background: rgba(216, 131, 95, 0.14);
+      color: var(--ink-bright);
+      transform: translateY(-1px);
+    }
+
+    .hint {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(72px, 10vh, 116px);
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.46);
+      font: 12px/1.8 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      text-align: center;
+      pointer-events: none;
+      text-shadow: 0 0 18px rgba(0, 0, 0, 0.85);
+    }
+
+    .speed-panel {
+      position: absolute;
+      left: clamp(16px, 3vw, 38px);
+      bottom: clamp(16px, 3vw, 30px);
+      width: min(246px, calc(100vw - 32px));
+      padding: 8px 10px;
+      border: 1px solid rgba(216, 200, 154, 0.08);
+      background: transparent;
+      backdrop-filter: none;
+      border-radius: 8px;
+      pointer-events: auto;
+      text-shadow: 0 0 14px rgba(0, 0, 0, 0.86);
+      font: 12px/1.25 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .speed-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speed-row + .speed-row { margin-top: 6px; }
+
+    .speed-row span {
+      min-width: 118px;
+      color: var(--ink-bright);
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--ember);
+      opacity: 0.78;
+      height: 18px;
+    }
+
+    .tool.active {
+      border-color: rgba(216, 131, 95, 0.78);
+      background: rgba(216, 131, 95, 0.18);
+      color: var(--ink-bright);
+    }
+
+    .byline {
+      position: absolute;
+      right: clamp(16px, 3vw, 38px);
+      bottom: clamp(18px, 3vw, 32px);
+      color: rgba(216, 200, 154, 0.44);
+      font: 12px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .star-card {
+      position: fixed;
+      z-index: 4;
+      width: 210px;
+      padding: 10px 12px;
+      border: 1px solid rgba(216, 200, 154, 0.22);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(16px);
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .star-card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card-date {
+      color: var(--ember);
+      font: 11px/1.2 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .card-title {
+      margin-top: 5px;
+      color: var(--ink-bright);
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .card-tip {
+      margin-top: 6px;
+      color: rgba(255, 255, 255, 0.44);
+      font: 11px/1.4 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .connector {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .connector.show { opacity: 1; }
+
+    .drawer,
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .drawer-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: min(420px, 100vw);
+      height: 100%;
+      padding: 24px;
+      border-left: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(20px);
+      transform: translateX(100%);
+      transition: transform 260ms ease;
+      pointer-events: auto;
+      overflow: auto;
+    }
+
+    .drawer.open .drawer-panel { transform: translateX(0); }
+
+    .panel-head,
+    .reader-head,
+    .composer-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2,
+    .reader-head h2,
+    .composer-head h2 {
+      margin: 0;
+      color: var(--ink-bright);
+      font-size: 24px;
+      font-weight: 500;
+    }
+
+    .story-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .story-button {
+      width: 100%;
+      padding: 14px 14px 13px;
+      border: 1px solid rgba(216, 200, 154, 0.14);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.035);
+      text-align: left;
+    }
+
+    .story-button:hover,
+    .story-button.active {
+      border-color: rgba(216, 131, 95, 0.56);
+      background: rgba(216, 131, 95, 0.1);
+    }
+
+    .story-date {
+      color: var(--ember);
+      font: 11px/1.4 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .story-title {
+      margin-top: 4px;
+      color: var(--ink-bright);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .story-excerpt {
+      margin-top: 7px;
+      color: rgba(216, 200, 154, 0.6);
+      font: 13px/1.7 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .modal {
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, 0.36);
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .modal.open {
+      pointer-events: auto;
+      opacity: 1;
+    }
+
+    .reader,
+    .composer {
+      width: min(680px, calc(100vw - 32px));
+      max-height: min(760px, calc(100vh - 40px));
+      overflow: auto;
+      padding: clamp(20px, 4vw, 34px);
+      border: 1px solid rgba(216, 200, 154, 0.22);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.76);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+      transform: translateY(12px);
+      transition: transform 220ms ease;
+    }
+
+    .modal.open .reader,
+    .modal.open .composer {
+      transform: translateY(0);
+    }
+
+    .reader-date {
+      color: var(--ember);
+      font: 12px/1.2 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .reader-body {
+      color: rgba(255, 243, 199, 0.9);
+      white-space: pre-wrap;
+      font-size: 17px;
+      line-height: 2;
+    }
+
+    .reader-actions,
+    .composer-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    .primary,
+    .ghost {
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      font: 13px/1 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    .primary {
+      background: rgba(216, 131, 95, 0.24);
+      color: var(--ink-bright);
+    }
+
+    .composer-form {
+      display: grid;
+      gap: 15px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--ink-soft);
+      font: 12px/1.2 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(216, 200, 154, 0.2);
+      border-radius: 8px;
+      padding: 11px 12px;
+      color: var(--ink-bright);
+      background: rgba(255, 255, 255, 0.055);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 170px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(216, 131, 95, 0.72);
+      box-shadow: 0 0 0 3px rgba(216, 131, 95, 0.12);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .check-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ember);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 30;
+      max-width: min(520px, calc(100vw - 32px));
+      padding: 11px 15px;
+      border: 1px solid rgba(216, 200, 154, 0.2);
+      border-radius: 999px;
+      color: var(--ink-bright);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(16px);
+      font: 13px/1.35 Inter, ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif;
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .cursor-dot {
+      position: fixed;
+      z-index: 20;
+      left: -20px;
+      top: -20px;
+      width: 16px;
+      height: 16px;
+      margin: -8px 0 0 -8px;
+      border: 1px solid rgba(255, 243, 199, 0.82);
+      border-radius: 999px;
+      pointer-events: none;
+      box-shadow: 0 0 16px rgba(255, 243, 199, 0.42);
+      opacity: 0.85;
+      transition: width 140ms ease, height 140ms ease, margin 140ms ease, border-color 140ms ease;
+    }
+
+    .cursor-dot.hot {
+      width: 24px;
+      height: 24px;
+      margin: -12px 0 0 -12px;
+      border-color: rgba(216, 131, 95, 0.95);
+      box-shadow: 0 0 22px rgba(216, 131, 95, 0.6);
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hud {
+        width: 100%;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .stats {
+        text-align: left;
+        min-width: 84px;
+      }
+
+      .toolbar {
+        justify-content: flex-end;
+      }
+
+      .tool {
+        height: 38px;
+        min-width: 38px;
+        padding: 0 11px;
+        font-size: 12px;
+      }
+
+      .hide-mobile {
+        display: none;
+      }
+
+      .hint {
+        bottom: 102px;
+        width: calc(100vw - 32px);
+      }
+
+      .byline {
+        display: none;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="scene" aria-label="故事星云">
+    <canvas id="spaceCanvas"></canvas>
+  </main>
+
+  <div class="overlay">
+    <header class="topbar">
+      <div class="brand">
+        <h1>故事云</h1>
+        <p>Story Nebula · 把有日期的小说故事点亮成一片星系</p>
+      </div>
+      <div class="hud">
+        <div class="stats"><strong id="storyCount">0</strong><span id="favoriteCount">0</span> 颗收藏星</div>
+        <div class="toolbar">
+          <button class="tool" id="addButton" type="button" title="添加故事">＋ 添加故事</button>
+          <button class="tool icon-tool" id="listButton" type="button" title="故事列表">☰</button>
+          <button class="tool icon-tool" id="linkButton" type="button" title="月份星链">⌁</button>
+          <button class="tool icon-tool" id="latestButton" type="button" title="最新故事">◷</button>
+          <button class="tool icon-tool" id="resetView" type="button" title="重置视角">⌂</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="hint">拖动鼠标改变视角 · WASD 在当前视线方向飞行 · 滚轮调节飞行速度 · 靠近星点可查看故事</div>
+
+    <section class="speed-panel">
+      <div class="speed-row">
+        <span id="spinReadout">星云速度 ×0.000 · 0 单位/秒</span>
+        <input id="spinRange" type="range" min="0" max="140" value="42" aria-label="星云旋转速度">
+      </div>
+      <div class="speed-row">
+        <span id="flightReadout">飞行速度 ×0.000 · 0 单位/秒</span>
+        <input id="flightRange" type="range" min="20" max="420" value="115" aria-label="飞行速度">
+      </div>
+    </section>
+
+    <div class="byline">yiwansuinian · Canvas 3D</div>
+  </div>
+
+  <svg class="connector" id="connector">
+    <line id="connectorLine" x1="0" y1="0" x2="0" y2="0" stroke="rgba(216,200,154,0.42)" stroke-width="1"/>
+  </svg>
+
+  <article class="star-card" id="starCard">
+    <div class="card-date" id="cardDate"></div>
+    <div class="card-title" id="cardTitle"></div>
+    <div class="card-tip">点击打开故事</div>
+  </article>
+
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <section class="drawer-panel">
+      <header class="panel-head">
+        <h2>故事列表</h2>
+        <button class="ghost" id="closeDrawer" type="button">关闭</button>
+      </header>
+      <div class="reader-actions" style="justify-content:flex-start; margin:0 0 14px;">
+        <button class="ghost" id="exportButton" type="button">导出 stories.json</button>
+        <button class="ghost" id="clearButton" type="button">清空本机添加</button>
+      </div>
+      <div class="story-list" id="storyList"></div>
+    </section>
+  </aside>
+
+  <div class="modal" id="readerModal" aria-hidden="true">
+    <article class="reader">
+      <header class="reader-head">
+        <div>
+          <div class="reader-date" id="readerDate"></div>
+          <h2 id="readerTitle"></h2>
+        </div>
+        <button class="ghost" id="closeReader" type="button">关闭</button>
+      </header>
+      <div class="reader-body" id="readerBody"></div>
+      <div class="reader-actions">
+        <button class="ghost" id="deleteButton" type="button">删除本机故事</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="modal" id="composerModal" aria-hidden="true">
+    <form class="composer" id="storyForm">
+      <header class="composer-head">
+        <h2>点亮新的星</h2>
+      </header>
+      <div class="composer-form">
+        <div class="form-grid">
+          <label>
+            日期
+            <input id="storyDate" type="date" required>
+          </label>
+          <label>
+            标题
+            <input id="storyTitle" type="text" maxlength="36" placeholder="例如：雨夜重逢" required>
+          </label>
+        </div>
+        <label class="check-row">
+          <input id="storyFavorite" type="checkbox">
+          收藏故事，在星云里显示为更亮的星
+        </label>
+        <label>
+          小说故事
+          <textarea id="storyText" maxlength="2600" placeholder="写下这一天的故事。它会被点亮成一颗新的星。" required></textarea>
+        </label>
+      </div>
+      <div class="composer-actions">
+        <button class="ghost" id="sampleButton" type="button">填入示例</button>
+        <button class="ghost" id="cancelComposer" type="button">取消</button>
+        <button class="primary" type="submit">点亮</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.querySelector("#spaceCanvas");
+      const ctx = canvas.getContext("2d", { alpha: false });
+      const storyCount = document.querySelector("#storyCount");
+      const favoriteCount = document.querySelector("#favoriteCount");
+      const storyList = document.querySelector("#storyList");
+      const drawer = document.querySelector("#drawer");
+      const starCard = document.querySelector("#starCard");
+      const cardDate = document.querySelector("#cardDate");
+      const cardTitle = document.querySelector("#cardTitle");
+      const connector = document.querySelector("#connector");
+      const connectorLine = document.querySelector("#connectorLine");
+      const cursorDot = document.querySelector("#cursorDot");
+      const readerModal = document.querySelector("#readerModal");
+      const readerDate = document.querySelector("#readerDate");
+      const readerTitle = document.querySelector("#readerTitle");
+      const readerBody = document.querySelector("#readerBody");
+      const composerModal = document.querySelector("#composerModal");
+      const storyForm = document.querySelector("#storyForm");
+      const storyDate = document.querySelector("#storyDate");
+      const storyTitle = document.querySelector("#storyTitle");
+      const storyText = document.querySelector("#storyText");
+      const storyFavorite = document.querySelector("#storyFavorite");
+      const spinRange = document.querySelector("#spinRange");
+      const flightRange = document.querySelector("#flightRange");
+      const spinReadout = document.querySelector("#spinReadout");
+      const flightReadout = document.querySelector("#flightReadout");
+      const linkButton = document.querySelector("#linkButton");
+      const toast = document.querySelector("#toast");
+
+      const localKey = "story-cloud-local-v5";
+      const spinKey = "story-cloud-spin-v5";
+      const flightKey = "story-cloud-flight-v5";
+      const palette = ["#d8c89a", "#fff3c7", "#d8835f", "#c9b28b", "#f1dfb2", "#9fb7d6", "#b8e986", "#f6a6c8", "#a6e3ff", "#c7a6ff"];
+      const coreStory = {
+        id: "story-core-star",
+        source: "core",
+        date: "0000-00-00",
+        title: "故事云核心",
+        favorite: true,
+        text: "所有故事围绕这颗恒星缓慢运行。它不是某一天的章节，而是这片星云的心脏：每一次点亮，都会让轨道多出一段新的光。",
+        x: 0,
+        y: 0,
+        z: 0,
+        color: "#fff3c7"
+      };
+      const samples = [
+        {
+          id: "train-terminal",
+          date: "2026-02-14",
+          title: "列车尽头",
+          favorite: true,
+          text: "她在末班列车的玻璃上写下他的名字。窗外的城市像被雨洗过的银器，灯光一盏一盏退后。广播说终点站快到了，可她知道真正抵达的地方，是多年以后再次想起这一夜。"
+        },
+        {
+          id: "nebula-awakens",
+          date: "2026-07-04",
+          title: "星云醒来",
+          favorite: true,
+          text: "他把一整章故事放进黑夜。文字没有落到纸上，而是散成微亮的星尘，沿着看不见的轨道慢慢旋转。每当有人靠近，那些句子就像认出了读者，重新排列成可以被触摸的光。"
+        }
+      ];
+
+      const state = {
+        width: 1,
+        height: 1,
+        dpr: 1,
+        stars: [],
+        dust: [],
+        stories: [],
+        storyDots: [],
+        comets: [],
+        hoverId: null,
+        selectedId: null,
+        linksVisible: false,
+        pointer: { x: -9999, y: -9999 },
+        keys: new Set(),
+        dragging: false,
+        dragMoved: 0,
+        lastMouse: { x: 0, y: 0 },
+        yaw: 0.16,
+        pitch: -0.42,
+        camera: { x: -450, y: 760, z: -1680 },
+        spin: Number(localStorage.getItem(spinKey) || 42) / 100,
+        flightSpeed: Number(localStorage.getItem(flightKey) || 115) / 100
+      };
+
+      spinRange.value = String(Math.round(state.spin * 100));
+      flightRange.value = String(Math.round(state.flightSpeed * 100));
+      storyDate.value = today();
+      updateSpeedReadouts();
+
+      function today() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function makeId() {
+        return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+      }
+
+      function rand(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function formatDate(value) {
+        if (value === "0000-00-00") return "恒星核心";
+        const parts = String(value || "").split("-");
+        return parts.length === 3 ? `${parts[0]}.${parts[1]}.${parts[2]}` : value || "";
+      }
+
+      function monthKey(value) {
+        return String(value || "").slice(0, 7);
+      }
+
+      function updateSpeedReadouts() {
+        const nebulaUnits = Math.round(420 + state.spin * 860);
+        const flightUnits = Math.round(380 + state.flightSpeed * 1880);
+        spinReadout.textContent = `星云速度 ×${state.spin.toFixed(3)} · ${nebulaUnits} 单位/秒`;
+        flightReadout.textContent = `飞行速度 ×${state.flightSpeed.toFixed(3)} · ${flightUnits} 单位/秒`;
+      }
+
+      function colorForIndex(index, favorite = false) {
+        if (favorite) return index % 3 === 0 ? "#fff3c7" : palette[(index * 3 + 1) % palette.length];
+        const cold = ["#eaf6ff", "#b9dcff", "#8fb7ff", "#d9efff", "#ffffff", "#a7c8ff"];
+        return cold[(index * 5 + 2) % cold.length];
+      }
+
+      function normalizeStory(raw, source = "public") {
+        const title = String(raw.title || "").trim();
+        const text = String(raw.text || "").trim();
+        if (!title || !text) return null;
+        return {
+          id: raw.id || makeId(),
+          source: raw.source || source,
+          date: raw.date || today(),
+          title,
+          text,
+          favorite: Boolean(raw.favorite),
+          x: Number(raw.x) || 0,
+          y: Number(raw.y) || 0,
+          z: Number(raw.z) || 0,
+          color: raw.color || null
+        };
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      function loadLocalStories() {
+        try {
+          const list = JSON.parse(localStorage.getItem(localKey)) || [];
+          return list.map((item) => normalizeStory(item, "local")).filter(Boolean);
+        } catch {
+          return [];
+        }
+      }
+
+      function saveLocalStories() {
+        localStorage.setItem(localKey, JSON.stringify(state.stories.filter((story) => story.source === "local")));
+      }
+
+      async function loadStories() {
+        let publicStories = [];
+        try {
+          const response = await fetch(`stories.json?v=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error("stories.json not found");
+          const data = await response.json();
+          publicStories = Array.isArray(data) ? data : [];
+        } catch {
+          publicStories = samples;
+        }
+
+        state.stories = [
+          ...publicStories.map((item) => normalizeStory(item, "public")).filter(Boolean),
+          ...loadLocalStories()
+        ];
+        if (!state.stories.some((story) => story.id === coreStory.id)) {
+          state.stories.unshift({ ...coreStory });
+        }
+        placeStories();
+        updateStoryDots();
+        updateStats();
+        renderTimeline();
+      }
+
+      function resize() {
+        const coarse = window.matchMedia("(pointer: coarse)").matches;
+        state.width = window.innerWidth;
+        state.height = window.innerHeight;
+        state.dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.15 : 1.65);
+        canvas.width = Math.floor(state.width * state.dpr);
+        canvas.height = Math.floor(state.height * state.dpr);
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        buildGalaxy();
+      }
+
+      function buildGalaxy() {
+        const mobile = state.width < 760 || window.matchMedia("(pointer: coarse)").matches;
+        const count = mobile ? 8400 : 23000;
+        const dustCount = mobile ? 2200 : 6400;
+        state.stars = [];
+        state.dust = [];
+
+        for (let i = 0; i < count; i += 1) {
+          const t = Math.random();
+          const core = i < count * 0.26;
+          const interArm = !core && i % 8 === 0;
+          const arm = i % 4;
+          const radius = core ? Math.pow(Math.random(), 0.42) * 920 : 250 + Math.pow(t, 0.74) * rand(1050, 2950);
+          const spiral = Math.log(radius / 190) * 0.78 + radius * 0.00046;
+          const armAngle = arm * Math.PI * 0.5;
+          const cloud = (rand(-1, 1) + rand(-1, 1) + rand(-1, 1)) / 3;
+          const clump = Math.sin(t * Math.PI * 5 + arm * 1.7) * 0.09;
+          const angle = core ? rand(0, Math.PI * 2) : interArm ? rand(0, Math.PI * 2) : armAngle + spiral + clump + cloud * (0.92 + t * 0.56);
+          const spread = core ? rand(-230, 230) : interArm ? rand(-520, 520) : cloud * (780 + t * 1050) + rand(-240, 240);
+          const x = Math.cos(angle) * radius + Math.cos(angle + Math.PI / 2) * spread;
+          const z = Math.sin(angle) * radius * 0.66 + Math.sin(angle + Math.PI / 2) * spread;
+          const y = core ? rand(-130, 130) : rand(-90, 90) * (0.24 + t * 0.96);
+          const warmth = core ? clamp(1 - radius / 980, 0, 1) : 0;
+          state.stars.push({
+            x, y, z,
+            size: core ? rand(0.86, 2.45 + warmth * 0.9) : rand(0.66, i % 29 === 0 ? 2.85 : 1.78),
+            alpha: core ? rand(0.5, 1) : interArm ? rand(0.18, 0.56) : rand(0.36, 1),
+            color: core
+              ? warmth > 0.55 ? "#fff3c7" : warmth > 0.24 ? "#f4e4ba" : "#d9efff"
+              : (i % 53 === 0 ? "#f6a6c8" : colorForIndex(i, i % 37 === 0)),
+            phase: rand(0, Math.PI * 2),
+            twinkle: rand(0.0009, 0.0046),
+            sparkle: rand(0.12, 0.52)
+          });
+        }
+
+        for (let i = 0; i < dustCount; i += 1) {
+          const shell = rand(1600, 5600);
+          const theta = rand(0, Math.PI * 2);
+          const phi = Math.acos(rand(-1, 1));
+          state.dust.push({
+            x: Math.sin(phi) * Math.cos(theta) * shell,
+            y: Math.cos(phi) * shell * 0.64,
+            z: Math.sin(phi) * Math.sin(theta) * shell,
+            size: rand(0.52, i % 41 === 0 ? 1.65 : 1.12),
+            alpha: rand(0.28, 0.82),
+            color: i % 31 === 0 ? "#f6a6c8" : i % 11 === 0 ? "#ffffff" : colorForIndex(i + 4),
+            phase: rand(0, Math.PI * 2),
+            twinkle: rand(0.0006, 0.003),
+            sparkle: rand(0.08, 0.34)
+          });
+        }
+
+        updateStoryDots();
+      }
+
+      function placeStories() {
+        const monthOrder = Array.from(new Set(state.stories
+          .filter((story) => story.id !== coreStory.id)
+          .map((story) => monthKey(story.date))
+          .filter(Boolean)));
+        state.stories.forEach((story, index) => {
+          if (story.id === coreStory.id) {
+            story.x = 0;
+            story.y = 0;
+            story.z = 0;
+            return;
+          }
+          if (story.x || story.y || story.z) return;
+          const monthIndex = Math.max(0, monthOrder.indexOf(monthKey(story.date)));
+          const sameMonth = state.stories.filter((item) => item.id !== coreStory.id && monthKey(item.date) === monthKey(story.date));
+          const localIndex = sameMonth.findIndex((item) => item === story);
+          const monthAngle = monthIndex / Math.max(1, monthOrder.length) * Math.PI * 2 + 0.24;
+          const clusterRadius = 760 + monthIndex * 190;
+          const localAngle = localIndex / Math.max(1, sameMonth.length) * Math.PI * 2 + index * 0.44;
+          const localRadius = 70 + localIndex * 34 + rand(-16, 22);
+          story.x = Math.cos(monthAngle) * clusterRadius + Math.cos(localAngle) * localRadius;
+          story.y = rand(-130, 150) + Math.sin(localAngle) * 38;
+          story.z = Math.sin(monthAngle) * clusterRadius * 0.74 + Math.sin(localAngle) * localRadius;
+        });
+      }
+
+      function updateStoryDots() {
+        state.storyDots = state.stories.map((story, index) => ({
+          story,
+          x: story.x,
+          y: story.y,
+          z: story.z,
+          color: story.color || colorForIndex(index, story.favorite),
+          size: story.id === coreStory.id ? 18 : story.favorite ? 8.2 : 5.8,
+          phase: rand(0, Math.PI * 2),
+          twinkle: story.id === coreStory.id ? 0.0009 : rand(0.001, 0.0038),
+          screen: null
+        }));
+      }
+
+      function cameraBasis() {
+        const cp = Math.cos(state.pitch);
+        const sp = Math.sin(state.pitch);
+        const sy = Math.sin(state.yaw);
+        const cy = Math.cos(state.yaw);
+        const forward = { x: sy * cp, y: sp, z: cy * cp };
+        const right = { x: cy, y: 0, z: -sy };
+        const up = {
+          x: -sy * sp,
+          y: cp,
+          z: -cy * sp
+        };
+        return { forward, right, up };
+      }
+
+      function rotatePoint(point, angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return {
+          x: point.x * c - point.z * s,
+          y: point.y,
+          z: point.x * s + point.z * c
+        };
+      }
+
+      function project(point, spinAngle) {
+        const p = spinAngle ? rotatePoint(point, spinAngle) : point;
+        const basis = cameraBasis();
+        const rx = p.x - state.camera.x;
+        const ry = p.y - state.camera.y;
+        const rz = p.z - state.camera.z;
+        const x = rx * basis.right.x + ry * basis.right.y + rz * basis.right.z;
+        const y = rx * basis.up.x + ry * basis.up.y + rz * basis.up.z;
+        const z = rx * basis.forward.x + ry * basis.forward.y + rz * basis.forward.z;
+        if (z < 8) return null;
+        const focal = Math.min(state.width, state.height) * 0.86;
+        return {
+          x: state.width / 2 + x / z * focal,
+          y: state.height / 2 - y / z * focal,
+          z,
+          scale: focal / z
+        };
+      }
+
+      function drawGlow(x, y, radius, color, alpha) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.22, color);
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawPoint(screen, item, now, boost = 1) {
+        const breath = 0.8 + Math.sin(now * item.twinkle + item.phase) * 0.2;
+        const sparkle = Math.pow((Math.sin(now * item.twinkle * 5.8 + item.phase * 2.7) + 1) * 0.5, 8) * item.sparkle;
+        const pulse = breath + sparkle;
+        const r = clamp(item.size * screen.scale * 2.55 * boost, 0.46, 3.7);
+        ctx.globalAlpha = clamp(item.alpha * pulse * boost * 1.24, 0.14, 1);
+        ctx.fillStyle = item.color;
+        if (r < 0.95) {
+          ctx.fillRect(screen.x, screen.y, 1, 1);
+        } else {
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (r > 2.2 && item.sparkle > 0.42) {
+          const glow = ctx.createRadialGradient(screen.x, screen.y, 0, screen.x, screen.y, r * 2.8);
+          glow.addColorStop(0, item.color);
+          glow.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.globalAlpha = clamp(item.alpha * pulse * 0.12, 0.04, 0.14);
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, r * 2.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawStoryDot(dot, screen, now, hot) {
+        const isCore = dot.story.id === coreStory.id;
+        const pulse = 1 + Math.sin(now * dot.twinkle + dot.phase) * (isCore ? 0.16 : 0.13);
+        const body = isCore
+          ? clamp(dot.size * screen.scale * 6.8, 18, 42)
+          : clamp(dot.size * screen.scale * 4.6, dot.story.favorite ? 3.2 : 2.4, dot.story.favorite ? 8.8 : 6.2);
+        const glow = body * (hot ? 4.6 : 2.7);
+        drawGlow(screen.x, screen.y, isCore ? glow * 3.8 : glow, dot.color, isCore ? 0.56 : hot ? 0.34 : 0.18);
+        ctx.save();
+        ctx.globalAlpha = hot ? 1 : 0.9;
+        ctx.fillStyle = dot.color;
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, body * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.88;
+        ctx.fillStyle = "#fff9dc";
+        ctx.beginPath();
+        ctx.arc(screen.x - body * 0.22, screen.y - body * 0.22, Math.max(1.1, body * 0.34), 0, Math.PI * 2);
+        ctx.fill();
+        if (isCore) {
+          drawGlow(screen.x, screen.y, body * 7.5, "#fff3c7", 0.16);
+          ctx.globalAlpha = 0.18 + Math.sin(now * 0.0011) * 0.04;
+          ctx.strokeStyle = "#fff3c7";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, body * 2.8, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawMonthLinks(spinAngle, now) {
+        if (!state.linksVisible) return;
+        const groups = new Map();
+        for (const dot of state.storyDots) {
+          if (dot.story.id === coreStory.id) continue;
+          const key = monthKey(dot.story.date);
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(dot);
+        }
+        ctx.save();
+        ctx.lineWidth = 1;
+        ctx.globalCompositeOperation = "lighter";
+        let groupIndex = 0;
+        for (const dots of groups.values()) {
+          const screens = dots
+            .slice()
+            .sort((a, b) => String(a.story.date).localeCompare(String(b.story.date)))
+            .map((dot) => project(dot, spinAngle))
+            .filter(Boolean);
+          if (screens.length < 2) {
+            groupIndex += 1;
+            continue;
+          }
+          ctx.strokeStyle = palette[groupIndex % palette.length];
+          ctx.globalAlpha = 0.22 + Math.sin(now * 0.001 + groupIndex) * 0.05;
+          ctx.beginPath();
+          screens.forEach((screen, index) => {
+            if (index === 0) ctx.moveTo(screen.x, screen.y);
+            else ctx.lineTo(screen.x, screen.y);
+          });
+          ctx.stroke();
+          groupIndex += 1;
+        }
+        ctx.restore();
+      }
+
+      function addComet(x, y) {
+        const length = rand(88, 166);
+        const angle = rand(-0.72, -0.25);
+        state.comets.push({
+          x,
+          y,
+          startX: x,
+          startY: y,
+          vx: Math.cos(angle) * rand(360, 620),
+          vy: Math.sin(angle) * rand(360, 620),
+          length,
+          life: 0,
+          hold: rand(0.055, 0.09),
+          ttl: rand(0.62, 0.86),
+          color: "#fff8df"
+        });
+      }
+
+      function drawComets(delta) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        state.comets = state.comets.filter((comet) => {
+          comet.life += delta;
+          const warm = Math.min(1, comet.life / comet.hold);
+          const starPulse = 1 + Math.sin(comet.life * 34) * 0.18;
+          if (comet.life < comet.hold) {
+            const glow = 10 + warm * 18;
+            drawGlow(comet.startX, comet.startY, glow, comet.color, 0.26 + warm * 0.18);
+            ctx.globalAlpha = 0.78 + warm * 0.22;
+            ctx.fillStyle = comet.color;
+            ctx.beginPath();
+            ctx.arc(comet.startX, comet.startY, (2.4 + warm * 2.4) * starPulse, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            return true;
+          }
+
+          comet.x += comet.vx * delta;
+          comet.y += comet.vy * delta;
+          const t = (comet.life - comet.hold) / comet.ttl;
+          if (t >= 1) return false;
+          const alpha = (1 - t) * 0.84;
+          const tailX = comet.x - comet.vx / Math.hypot(comet.vx, comet.vy) * comet.length;
+          const tailY = comet.y - comet.vy / Math.hypot(comet.vx, comet.vy) * comet.length;
+          const gradient = ctx.createLinearGradient(comet.x, comet.y, tailX, tailY);
+          gradient.addColorStop(0, `rgba(255, 248, 223, ${alpha})`);
+          gradient.addColorStop(1, "rgba(255, 248, 223, 0)");
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(comet.x, comet.y);
+          ctx.lineTo(tailX, tailY);
+          ctx.stroke();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = comet.color;
+          ctx.beginPath();
+          ctx.arc(comet.x, comet.y, 2.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          return true;
+        });
+        ctx.restore();
+      }
+
+      function updateMovement(delta) {
+        const basis = cameraBasis();
+        const move = 920 * state.flightSpeed * delta;
+        if (state.keys.has("w")) {
+          state.camera.x += basis.forward.x * move;
+          state.camera.y += basis.forward.y * move;
+          state.camera.z += basis.forward.z * move;
+        }
+        if (state.keys.has("s")) {
+          state.camera.x -= basis.forward.x * move;
+          state.camera.y -= basis.forward.y * move;
+          state.camera.z -= basis.forward.z * move;
+        }
+        if (state.keys.has("a")) {
+          state.camera.x -= basis.right.x * move;
+          state.camera.y -= basis.right.y * move;
+          state.camera.z -= basis.right.z * move;
+        }
+        if (state.keys.has("d")) {
+          state.camera.x += basis.right.x * move;
+          state.camera.y += basis.right.y * move;
+          state.camera.z += basis.right.z * move;
+        }
+        if (state.keys.has("q")) state.camera.y -= move;
+        if (state.keys.has("e")) state.camera.y += move;
+      }
+
+      function render(now) {
+        const seconds = now * 0.001;
+        const delta = Math.min(0.033, (render.last ? now - render.last : 16) / 1000);
+        render.last = now;
+        updateMovement(delta);
+
+        const bg = ctx.createRadialGradient(state.width * 0.5, state.height * 0.45, 0, state.width * 0.5, state.height * 0.5, Math.max(state.width, state.height) * 0.78);
+        bg.addColorStop(0, "#1d2138");
+        bg.addColorStop(0.42, "#0d1020");
+        bg.addColorStop(1, "#05060b");
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        const spinAngle = seconds * 0.018 * state.spin;
+        for (const item of state.dust) {
+          const screen = project(item, 0);
+          if (screen && screen.x > -40 && screen.x < state.width + 40 && screen.y > -40 && screen.y < state.height + 40) {
+            drawPoint(screen, item, now, 0.78);
+          }
+        }
+        for (const item of state.stars) {
+          const screen = project(item, spinAngle);
+          if (screen && screen.x > -30 && screen.x < state.width + 30 && screen.y > -30 && screen.y < state.height + 30) {
+            drawPoint(screen, item, now);
+          }
+        }
+        const storyEntries = [];
+        for (const dot of state.storyDots) {
+          const screen = project(dot, spinAngle);
+          dot.screen = screen;
+          if (screen && screen.x > -60 && screen.x < state.width + 60 && screen.y > -60 && screen.y < state.height + 60) {
+            storyEntries.push({ dot, screen });
+          }
+        }
+
+        state.hoverId = findHover();
+        drawMonthLinks(spinAngle, now);
+        storyEntries.sort((a, b) => b.screen.z - a.screen.z);
+        for (const entry of storyEntries) {
+          drawStoryDot(entry.dot, entry.screen, now, entry.dot.story.id === state.hoverId || entry.dot.story.id === state.selectedId);
+        }
+        ctx.globalAlpha = 1;
+        drawComets(delta);
+
+        updateHoverOverlay();
+        requestAnimationFrame(render);
+      }
+
+      function findHover() {
+        let best = null;
+        for (const dot of state.storyDots) {
+          if (!dot.screen) continue;
+          const dx = state.pointer.x - dot.screen.x;
+          const dy = state.pointer.y - dot.screen.y;
+          const distance = Math.hypot(dx, dy);
+          const hit = dot.story.favorite ? 13 : 10;
+          if (distance <= hit && (!best || distance < best.distance)) {
+            best = { id: dot.story.id, distance };
+          }
+        }
+        return best?.id || null;
+      }
+
+      function updateHoverOverlay() {
+        const storyId = state.hoverId || state.selectedId;
+        const dot = state.storyDots.find((item) => item.story.id === storyId);
+        cursorDot.classList.toggle("hot", Boolean(state.hoverId));
+        if (!dot?.screen) {
+          starCard.classList.remove("show");
+          connector.classList.remove("show");
+          return;
+        }
+
+        cardDate.textContent = formatDate(dot.story.date);
+        cardTitle.textContent = dot.story.title;
+        const cardX = clamp(dot.screen.x + 24, 14, state.width - 224);
+        const cardY = clamp(dot.screen.y - 28, 86, state.height - 118);
+        starCard.style.left = `${cardX}px`;
+        starCard.style.top = `${cardY}px`;
+        connectorLine.setAttribute("x1", dot.screen.x);
+        connectorLine.setAttribute("y1", dot.screen.y);
+        connectorLine.setAttribute("x2", cardX + 12);
+        connectorLine.setAttribute("y2", cardY + 22);
+        starCard.classList.add("show");
+        connector.classList.add("show");
+      }
+
+      function renderTimeline() {
+        storyList.innerHTML = "";
+        state.stories
+          .slice()
+          .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+          .forEach((story) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "story-button";
+            if (story.id === state.selectedId) button.classList.add("active");
+
+            const date = document.createElement("div");
+            date.className = "story-date";
+            date.textContent = `${formatDate(story.date)}${story.favorite ? " · 收藏" : ""}${story.source === "local" ? " · 本机" : ""}`;
+            const title = document.createElement("div");
+            title.className = "story-title";
+            title.textContent = story.title;
+            const excerpt = document.createElement("div");
+            excerpt.className = "story-excerpt";
+            excerpt.textContent = story.text;
+            button.append(date, title, excerpt);
+            button.addEventListener("click", () => {
+              drawer.classList.remove("open");
+              selectStory(story.id);
+              flyNearStory(story.id);
+            });
+            storyList.append(button);
+          });
+      }
+
+      function updateStats() {
+        const visibleStories = state.stories.filter((story) => story.id !== coreStory.id);
+        storyCount.textContent = String(visibleStories.length);
+        favoriteCount.textContent = String(visibleStories.filter((story) => story.favorite).length);
+      }
+
+      function selectStory(storyId) {
+        state.selectedId = storyId;
+        renderTimeline();
+      }
+
+      function openStory(storyId) {
+        const story = state.stories.find((item) => item.id === storyId);
+        if (!story) return;
+        clearMovementKeys();
+        selectStory(story.id);
+        readerDate.textContent = formatDate(story.date);
+        readerTitle.textContent = story.title;
+        readerBody.textContent = story.text;
+        readerModal.classList.add("open");
+        readerModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeReader() {
+        readerModal.classList.remove("open");
+        readerModal.setAttribute("aria-hidden", "true");
+      }
+
+      function clearMovementKeys() {
+        state.keys.clear();
+      }
+
+      function openComposer() {
+        clearMovementKeys();
+        if (!storyDate.value) storyDate.value = today();
+        composerModal.classList.add("open");
+        composerModal.setAttribute("aria-hidden", "false");
+        setTimeout(() => storyTitle.focus(), 60);
+      }
+
+      function closeComposer() {
+        composerModal.classList.remove("open");
+        composerModal.setAttribute("aria-hidden", "true");
+      }
+
+      function addStory(date, title, text, favorite) {
+        const index = state.stories.length;
+        const angle = index * 1.74 + rand(-0.32, 0.32);
+        const story = normalizeStory({
+          id: makeId(),
+          source: "local",
+          date,
+          title,
+          text,
+          favorite,
+          x: Math.cos(angle) * rand(520, 1500),
+          y: rand(-230, 260),
+          z: Math.sin(angle) * rand(460, 1250)
+        }, "local");
+        state.stories.push(story);
+        saveLocalStories();
+        updateStoryDots();
+        updateStats();
+        renderTimeline();
+        selectStory(story.id);
+        flyNearStory(story.id);
+        showToast("新的故事已经点亮。本机可见，导出 stories.json 后上传即可公开。");
+      }
+
+      function deleteSelectedLocalStory() {
+        const story = state.stories.find((item) => item.id === state.selectedId);
+        if (!story) return;
+        if (story.source !== "local") {
+          showToast("公开故事需要修改 stories.json 才能删除。");
+          return;
+        }
+        state.stories = state.stories.filter((item) => item.id !== story.id);
+        state.selectedId = null;
+        saveLocalStories();
+        updateStoryDots();
+        updateStats();
+        renderTimeline();
+        closeReader();
+        showToast("已删除本机故事。");
+      }
+
+      function flyNearStory(storyId) {
+        const dot = state.storyDots.find((item) => item.story.id === storyId);
+        if (!dot) return;
+        const direction = { x: dot.x - state.camera.x, y: dot.y - state.camera.y, z: dot.z - state.camera.z };
+        const yaw = Math.atan2(direction.x, direction.z);
+        const flat = Math.hypot(direction.x, direction.z);
+        const pitch = Math.atan2(direction.y, flat);
+        state.yaw = yaw;
+        state.pitch = clamp(pitch, -1.16, 1.08);
+      }
+
+      function resetView() {
+        state.camera = { x: -450, y: 760, z: -1680 };
+        state.yaw = 0.16;
+        state.pitch = -0.42;
+        state.selectedId = null;
+        showToast("视角已重置。");
+      }
+
+      function fillSample() {
+        const sample = samples[Math.floor(Math.random() * samples.length)];
+        storyDate.value = sample.date;
+        storyTitle.value = sample.title;
+        storyText.value = sample.text;
+        storyFavorite.checked = Boolean(sample.favorite);
+        showToast("示例已填入。");
+      }
+
+      function exportStories() {
+        const output = state.stories
+          .filter((story) => story.id !== coreStory.id)
+          .map(({ id, date, title, favorite, text, x, y, z, color }) => ({
+            id, date, title, favorite, text, x, y, z, color
+          }));
+        const blob = new Blob([JSON.stringify(output, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "stories.json";
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast("已导出 stories.json，上传它后别人也能看到新增故事。");
+      }
+
+      function bindEvents() {
+        document.querySelector("#addButton").addEventListener("click", openComposer);
+        document.querySelector("#listButton").addEventListener("click", () => {
+          drawer.classList.add("open");
+          drawer.setAttribute("aria-hidden", "false");
+        });
+        document.querySelector("#closeDrawer").addEventListener("click", () => {
+          drawer.classList.remove("open");
+          drawer.setAttribute("aria-hidden", "true");
+        });
+        document.querySelector("#latestButton").addEventListener("click", () => {
+          const latest = [...state.stories].filter((story) => story.id !== coreStory.id).sort((a, b) => String(a.date).localeCompare(String(b.date))).at(-1);
+          if (!latest) return;
+          selectStory(latest.id);
+          flyNearStory(latest.id);
+          openStory(latest.id);
+        });
+        linkButton.addEventListener("click", () => {
+          state.linksVisible = !state.linksVisible;
+          linkButton.classList.toggle("active", state.linksVisible);
+          showToast(state.linksVisible ? "月份星链已开启。" : "月份星链已关闭。");
+        });
+        document.querySelector("#resetView").addEventListener("click", resetView);
+        document.querySelector("#closeReader").addEventListener("click", closeReader);
+        document.querySelector("#deleteButton").addEventListener("click", deleteSelectedLocalStory);
+        document.querySelector("#cancelComposer").addEventListener("click", closeComposer);
+        document.querySelector("#sampleButton").addEventListener("click", fillSample);
+        document.querySelector("#exportButton").addEventListener("click", exportStories);
+        document.querySelector("#clearButton").addEventListener("click", () => {
+          state.stories = state.stories.filter((story) => story.source !== "local");
+          state.selectedId = null;
+          saveLocalStories();
+          updateStoryDots();
+          updateStats();
+          renderTimeline();
+          showToast("已清空本机添加的故事。");
+        });
+
+        storyForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const title = storyTitle.value.trim();
+          const text = storyText.value.trim();
+          if (!title || !text) return;
+          addStory(storyDate.value, title, text, storyFavorite.checked);
+          storyTitle.value = "";
+          storyText.value = "";
+          storyFavorite.checked = false;
+          closeComposer();
+        });
+
+        starCard.addEventListener("click", () => {
+          const storyId = state.hoverId || state.selectedId;
+          if (storyId) openStory(storyId);
+        });
+
+        readerModal.addEventListener("click", (event) => {
+          if (event.target === readerModal) closeReader();
+        });
+        composerModal.addEventListener("click", (event) => {
+          if (event.target === composerModal) closeComposer();
+        });
+
+        spinRange.addEventListener("input", () => {
+          state.spin = Number(spinRange.value) / 100;
+          localStorage.setItem(spinKey, String(spinRange.value));
+          updateSpeedReadouts();
+        });
+        flightRange.addEventListener("input", () => {
+          state.flightSpeed = Number(flightRange.value) / 100;
+          localStorage.setItem(flightKey, String(flightRange.value));
+          updateSpeedReadouts();
+        });
+
+        window.addEventListener("resize", resize);
+        window.addEventListener("keydown", (event) => {
+          if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+          const key = event.key.toLowerCase();
+          if (["w", "a", "s", "d", "q", "e"].includes(key)) {
+            state.keys.add(key);
+            event.preventDefault();
+          }
+          if (event.key === "Escape") {
+            closeReader();
+            closeComposer();
+            drawer.classList.remove("open");
+            drawer.setAttribute("aria-hidden", "true");
+            state.selectedId = null;
+          }
+        });
+        window.addEventListener("keyup", (event) => state.keys.delete(event.key.toLowerCase()));
+        window.addEventListener("blur", clearMovementKeys);
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) clearMovementKeys();
+        });
+        document.addEventListener("selectstart", (event) => {
+          if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target.closest?.(".reader-body")) return;
+          event.preventDefault();
+        });
+
+        canvas.addEventListener("pointermove", (event) => {
+          state.pointer.x = event.clientX;
+          state.pointer.y = event.clientY;
+          cursorDot.style.left = `${event.clientX}px`;
+          cursorDot.style.top = `${event.clientY}px`;
+          if (!state.dragging) return;
+          const dx = event.clientX - state.lastMouse.x;
+          const dy = event.clientY - state.lastMouse.y;
+          state.dragMoved += Math.abs(dx) + Math.abs(dy);
+          state.yaw -= dx * 0.003;
+          state.pitch += dy * 0.0025;
+          state.pitch = clamp(state.pitch, -1.16, 1.08);
+          state.lastMouse.x = event.clientX;
+          state.lastMouse.y = event.clientY;
+        });
+        canvas.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          clearMovementKeys();
+          state.dragging = true;
+          state.dragMoved = 0;
+          state.lastMouse.x = event.clientX;
+          state.lastMouse.y = event.clientY;
+          canvas.setPointerCapture(event.pointerId);
+        });
+        canvas.addEventListener("pointerup", (event) => {
+          state.dragging = false;
+          canvas.releasePointerCapture(event.pointerId);
+        });
+        canvas.addEventListener("click", () => {
+          if (state.dragMoved > 8) return;
+          if (state.hoverId) openStory(state.hoverId);
+          else addComet(state.pointer.x, state.pointer.y);
+        });
+        canvas.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          const direction = event.deltaY < 0 ? 1 : -1;
+          state.flightSpeed = clamp(state.flightSpeed + direction * 0.16, 0.2, 4.2);
+          flightRange.value = String(Math.round(state.flightSpeed * 100));
+          localStorage.setItem(flightKey, String(flightRange.value));
+          updateSpeedReadouts();
+          showToast(`飞行速度 ×${state.flightSpeed.toFixed(3)}`);
+        }, { passive: false });
+      }
+
+      bindEvents();
+      resize();
+      loadStories();
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>
