@@ -30,11 +30,17 @@
         #07080f;
       color: var(--ink);
       font-family: Georgia, "Times New Roman", "Songti SC", "SimSun", serif;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     body { cursor: auto; }
     button, input, textarea { font: inherit; }
     button { cursor: pointer; }
+    input, textarea, .reader-body {
+      user-select: text;
+      -webkit-user-select: text;
+    }
 
     #scene {
       position: fixed;
@@ -809,7 +815,8 @@
 
       function colorForIndex(index, favorite = false) {
         if (favorite) return index % 3 === 0 ? "#fff3c7" : palette[(index * 3 + 1) % palette.length];
-        return palette[(index * 5 + 2) % palette.length];
+        const cold = ["#eaf6ff", "#b9dcff", "#8fb7ff", "#d9efff", "#ffffff", "#a7c8ff"];
+        return cold[(index * 5 + 2) % cold.length];
       }
 
       function normalizeStory(raw, source = "public") {
@@ -897,15 +904,15 @@
         for (let i = 0; i < count; i += 1) {
           const t = Math.random();
           const core = i < count * 0.2;
-          const interArm = !core && i % 7 === 0;
-          const arm = i % 2;
+          const interArm = !core && i % 8 === 0;
+          const arm = i % 4;
           const radius = core ? Math.pow(Math.random(), 0.5) * 620 : 250 + Math.pow(t, 0.74) * rand(1050, 2950);
           const spiral = Math.log(radius / 190) * 0.78 + radius * 0.00046;
-          const armAngle = arm * Math.PI;
+          const armAngle = arm * Math.PI * 0.5;
           const cloud = (rand(-1, 1) + rand(-1, 1) + rand(-1, 1)) / 3;
           const clump = Math.sin(t * Math.PI * 5 + arm * 1.7) * 0.09;
-          const angle = core ? rand(0, Math.PI * 2) : interArm ? rand(0, Math.PI * 2) : armAngle + spiral + clump + cloud * (0.72 + t * 0.42);
-          const spread = core ? rand(-210, 210) : interArm ? rand(-420, 420) : cloud * (430 + t * 620) + rand(-140, 140);
+          const angle = core ? rand(0, Math.PI * 2) : interArm ? rand(0, Math.PI * 2) : armAngle + spiral + clump + cloud * (0.92 + t * 0.56);
+          const spread = core ? rand(-230, 230) : interArm ? rand(-520, 520) : cloud * (780 + t * 1050) + rand(-240, 240);
           const x = Math.cos(angle) * radius + Math.cos(angle + Math.PI / 2) * spread;
           const z = Math.sin(angle) * radius * 0.66 + Math.sin(angle + Math.PI / 2) * spread;
           const y = core ? rand(-105, 105) : rand(-90, 90) * (0.24 + t * 0.96);
@@ -913,7 +920,7 @@
             x, y, z,
             size: core ? rand(0.95, 2.7) : rand(0.66, i % 29 === 0 ? 2.85 : 1.78),
             alpha: core ? rand(0.48, 1) : interArm ? rand(0.18, 0.56) : rand(0.36, 1),
-            color: core ? (i % 5 === 0 ? "#fff3c7" : "#f1dfb2") : (i % 41 === 0 ? "#ff9db1" : colorForIndex(i, i % 37 === 0)),
+            color: core ? (i % 5 === 0 ? "#fff3c7" : "#f1dfb2") : (i % 53 === 0 ? "#f6a6c8" : colorForIndex(i, i % 37 === 0)),
             phase: rand(0, Math.PI * 2),
             twinkle: rand(0.0009, 0.0046),
             sparkle: rand(0.12, 0.52)
@@ -930,7 +937,7 @@
             z: Math.sin(phi) * Math.sin(theta) * shell,
             size: rand(0.52, i % 41 === 0 ? 1.65 : 1.12),
             alpha: rand(0.28, 0.82),
-            color: i % 23 === 0 ? "#d8835f" : i % 11 === 0 ? "#fff3c7" : colorForIndex(i + 4),
+            color: i % 31 === 0 ? "#f6a6c8" : i % 11 === 0 ? "#ffffff" : colorForIndex(i + 4),
             phase: rand(0, Math.PI * 2),
             twinkle: rand(0.0006, 0.003),
             sparkle: rand(0.08, 0.34)
@@ -1042,16 +1049,24 @@
         const breath = 0.8 + Math.sin(now * item.twinkle + item.phase) * 0.2;
         const sparkle = Math.pow((Math.sin(now * item.twinkle * 5.8 + item.phase * 2.7) + 1) * 0.5, 8) * item.sparkle;
         const pulse = breath + sparkle;
-        const r = clamp(item.size * screen.scale * 3.15 * boost, 0.58, 8);
+        const r = clamp(item.size * screen.scale * 2.55 * boost, 0.46, 3.7);
         ctx.globalAlpha = clamp(item.alpha * pulse * boost * 1.24, 0.14, 1);
         ctx.fillStyle = item.color;
-        ctx.beginPath();
-        ctx.arc(screen.x, screen.y, r, 0, Math.PI * 2);
-        ctx.fill();
-        if (r > 1.45) {
-          ctx.globalAlpha = clamp(item.alpha * pulse * 0.24, 0.06, 0.28);
+        if (r < 0.95) {
+          ctx.fillRect(screen.x, screen.y, 1, 1);
+        } else {
           ctx.beginPath();
-          ctx.arc(screen.x, screen.y, r * 2.4, 0, Math.PI * 2);
+          ctx.arc(screen.x, screen.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (r > 2.2 && item.sparkle > 0.42) {
+          const glow = ctx.createRadialGradient(screen.x, screen.y, 0, screen.x, screen.y, r * 2.8);
+          glow.addColorStop(0, item.color);
+          glow.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.globalAlpha = clamp(item.alpha * pulse * 0.12, 0.04, 0.14);
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, r * 2.8, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -1118,48 +1133,6 @@
           });
           ctx.stroke();
           groupIndex += 1;
-        }
-        ctx.restore();
-      }
-
-      function drawSpiralHaze(spinAngle, now) {
-        ctx.save();
-        ctx.globalCompositeOperation = "lighter";
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        const arms = 2;
-        for (let arm = 0; arm < arms; arm += 1) {
-          for (let band = 0; band < 5; band += 1) {
-            ctx.beginPath();
-            let started = false;
-            for (let step = 0; step <= 42; step += 1) {
-              const t = step / 42;
-              const radius = 260 + Math.pow(t, 0.72) * 3020;
-              const twist = Math.log(radius / 190) * 0.78 + radius * 0.00046;
-              const side = band - 2;
-              const angle = arm * Math.PI + twist + side * (0.28 + t * 0.2) + Math.sin(t * Math.PI * 3.2 + arm) * 0.08;
-              const point = {
-                x: Math.cos(angle) * radius,
-                y: Math.sin(t * Math.PI * 1.2 + arm + band) * 30,
-                z: Math.sin(angle) * radius * 0.66
-              };
-              const screen = project(point, spinAngle);
-              if (!screen) {
-                started = false;
-                continue;
-              }
-              if (!started) {
-                ctx.moveTo(screen.x, screen.y);
-                started = true;
-              } else {
-                ctx.lineTo(screen.x, screen.y);
-              }
-            }
-            ctx.lineWidth = band === 2 ? 170 : band === 1 || band === 3 ? 125 : 84;
-            ctx.globalAlpha = (band === 2 ? 0.034 : band === 1 || band === 3 ? 0.025 : 0.014) + Math.sin(now * 0.0008 + arm + band) * 0.004;
-            ctx.strokeStyle = band === 2 ? "#7faaff" : band === 1 || band === 3 ? "#90c4ff" : "#fff3c7";
-            ctx.stroke();
-          }
         }
         ctx.restore();
       }
@@ -1270,7 +1243,6 @@
         ctx.fillRect(0, 0, state.width, state.height);
 
         const spinAngle = seconds * 0.018 * state.spin;
-        drawSpiralHaze(spinAngle, now);
         for (const item of state.dust) {
           const screen = project(item, 0);
           if (screen && screen.x > -40 && screen.x < state.width + 40 && screen.y > -40 && screen.y < state.height + 40) {
@@ -1388,6 +1360,7 @@
       function openStory(storyId) {
         const story = state.stories.find((item) => item.id === storyId);
         if (!story) return;
+        clearMovementKeys();
         selectStory(story.id);
         readerDate.textContent = formatDate(story.date);
         readerTitle.textContent = story.title;
@@ -1401,7 +1374,12 @@
         readerModal.setAttribute("aria-hidden", "true");
       }
 
+      function clearMovementKeys() {
+        state.keys.clear();
+      }
+
       function openComposer() {
+        clearMovementKeys();
         if (!storyDate.value) storyDate.value = today();
         composerModal.classList.add("open");
         composerModal.setAttribute("aria-hidden", "false");
@@ -1573,6 +1551,7 @@
 
         window.addEventListener("resize", resize);
         window.addEventListener("keydown", (event) => {
+          if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
           const key = event.key.toLowerCase();
           if (["w", "a", "s", "d", "q", "e"].includes(key)) {
             state.keys.add(key);
@@ -1587,6 +1566,14 @@
           }
         });
         window.addEventListener("keyup", (event) => state.keys.delete(event.key.toLowerCase()));
+        window.addEventListener("blur", clearMovementKeys);
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) clearMovementKeys();
+        });
+        document.addEventListener("selectstart", (event) => {
+          if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target.closest?.(".reader-body")) return;
+          event.preventDefault();
+        });
 
         canvas.addEventListener("pointermove", (event) => {
           state.pointer.x = event.clientX;
@@ -1604,6 +1591,8 @@
           state.lastMouse.y = event.clientY;
         });
         canvas.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          clearMovementKeys();
           state.dragging = true;
           state.dragMoved = 0;
           state.lastMouse.x = event.clientX;
