@@ -713,8 +713,14 @@
         modal?.setAttribute("aria-hidden", "true");
       },
       async startCanvas() {
-        if (window.storyCloudThreeStarted || this.active) return;
+        if (window.storyCloudThreeReady || this.active) return;
         this.active = true;
+        const toast = document.querySelector("#toast");
+        if (toast) {
+          toast.textContent = "已切换到兼容星云模式";
+          toast.classList.add("show");
+          window.setTimeout(() => toast.classList.remove("show"), 1800);
+        }
 
         const scene = document.querySelector("#scene");
         const canvas = document.createElement("canvas");
@@ -1643,6 +1649,7 @@
     bindEvents();
     loadStories();
     resize();
+    window.storyCloudThreeReady = true;
     requestAnimationFrame(animate);
   </script>
 </body>
