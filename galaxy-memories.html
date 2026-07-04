@@ -583,7 +583,7 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js"
       }
     }
   </script>
@@ -694,6 +694,12 @@
 
   <script>
     window.storyCloudFallback = {
+      active: false,
+      stories: [],
+      stars: [],
+      storyDots: [],
+      pointer: { x: 0, y: 0 },
+      speed: 0.18,
       openComposer() {
         const modal = document.querySelector("#composerModal");
         const date = document.querySelector("#storyDate");
@@ -705,20 +711,231 @@
         const modal = document.querySelector("#composerModal");
         modal?.classList.remove("open");
         modal?.setAttribute("aria-hidden", "true");
+      },
+      async startCanvas() {
+        if (window.storyCloudThreeStarted || this.active) return;
+        this.active = true;
+
+        const scene = document.querySelector("#scene");
+        const canvas = document.createElement("canvas");
+        canvas.id = "fallbackCanvas";
+        scene.appendChild(canvas);
+        const ctx = canvas.getContext("2d");
+        const storyCount = document.querySelector("#storyCount");
+        const favoriteCount = document.querySelector("#favoriteCount");
+        const storyList = document.querySelector("#storyList");
+        const readerModal = document.querySelector("#readerModal");
+        const readerDate = document.querySelector("#readerDate");
+        const readerTitle = document.querySelector("#readerTitle");
+        const readerBody = document.querySelector("#readerBody");
+
+        const resize = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          canvas.style.width = "100%";
+          canvas.style.height = "100%";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          this.seedCanvas();
+        };
+
+        const openStory = (story) => {
+          readerDate.textContent = this.formatDate(story.date);
+          readerTitle.textContent = story.title;
+          readerBody.textContent = story.text;
+          readerModal.classList.add("open");
+          readerModal.setAttribute("aria-hidden", "false");
+        };
+
+        const renderList = () => {
+          storyCount.textContent = String(this.stories.length);
+          favoriteCount.textContent = String(this.stories.filter((story) => story.favorite).length);
+          storyList.innerHTML = "";
+          this.stories
+            .slice()
+            .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+            .forEach((story) => {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.className = "story-button";
+              const date = document.createElement("div");
+              date.className = "story-date";
+              date.textContent = `${this.formatDate(story.date)}${story.favorite ? " · 收藏" : ""}`;
+              const title = document.createElement("div");
+              title.className = "story-title";
+              title.textContent = story.title;
+              const excerpt = document.createElement("div");
+              excerpt.className = "story-excerpt";
+              excerpt.textContent = story.text;
+              button.append(date, title, excerpt);
+              button.addEventListener("click", () => openStory(story));
+              storyList.append(button);
+            });
+        };
+
+        try {
+          const response = await fetch(`stories.json?v=${Date.now()}`, { cache: "no-store" });
+          const data = await response.json();
+          this.stories = Array.isArray(data) ? data : [];
+        } catch {
+          this.stories = [
+            {
+              id: "fallback-1",
+              date: "2026-07-04",
+              title: "星云醒来",
+              favorite: true,
+              text: "故事云已进入备用星图模式。3D 资源加载失败时，网站仍会显示星云和故事。"
+            }
+          ];
+        }
+
+        renderList();
+        resize();
+        window.addEventListener("resize", resize);
+        window.addEventListener("mousemove", (event) => {
+          this.pointer.x = event.clientX / window.innerWidth - 0.5;
+          this.pointer.y = event.clientY / window.innerHeight - 0.5;
+        });
+        window.addEventListener("wheel", (event) => {
+          this.speed = Math.min(1.5, Math.max(0.03, this.speed + (event.deltaY < 0 ? 0.04 : -0.04)));
+        }, { passive: true });
+        canvas.addEventListener("click", (event) => {
+          const hit = this.storyDots.find((dot) => Math.hypot(event.clientX - dot.x, event.clientY - dot.y) < dot.r + 7);
+          if (hit) openStory(hit.story);
+        });
+        document.querySelector("#storyForm")?.addEventListener("submit", (event) => {
+          if (!this.active) return;
+          event.preventDefault();
+          const date = document.querySelector("#storyDate").value;
+          const title = document.querySelector("#storyTitle").value.trim();
+          const text = document.querySelector("#storyText").value.trim();
+          const favorite = document.querySelector("#storyFavorite").checked;
+          if (!title || !text) return;
+          this.stories.push({ id: String(Date.now()), date, title, text, favorite });
+          document.querySelector("#storyTitle").value = "";
+          document.querySelector("#storyText").value = "";
+          document.querySelector("#storyFavorite").checked = false;
+          this.closeComposer();
+          this.seedCanvas();
+          renderList();
+        });
+
+        const draw = (now) => {
+          this.drawCanvas(ctx, now);
+          requestAnimationFrame(draw);
+        };
+        requestAnimationFrame(draw);
+      },
+      fillSample() {
+        const samples = [
+          {
+            date: "2026-02-14",
+            title: "列车尽头",
+            favorite: true,
+            text: "她在末班列车的玻璃上写下他的名字。窗外的城市像被雨洗过的银器，灯光一盏一盏退后。广播说终点站快到了，可她知道真正抵达的地方，是多年以后再次想起这一夜。"
+          },
+          {
+            date: "2026-07-04",
+            title: "星云醒来",
+            favorite: true,
+            text: "他把一整章故事放进黑夜。文字没有落到纸上，而是散成微亮的星尘，沿着看不见的轨道慢慢旋转。每当有人靠近，那些句子就像认出了读者，重新排列成可以被触摸的光。"
+          }
+        ];
+        const sample = samples[Math.floor(Math.random() * samples.length)];
+        document.querySelector("#storyDate").value = sample.date;
+        document.querySelector("#storyTitle").value = sample.title;
+        document.querySelector("#storyText").value = sample.text;
+        document.querySelector("#storyFavorite").checked = Boolean(sample.favorite);
+      },
+      seedCanvas() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        this.stars = Array.from({ length: Math.min(1400, Math.floor(width * height / 900)) }, (_, index) => {
+          const t = Math.random();
+          const arm = index % 5;
+          const angle = arm * Math.PI * 0.4 + t * Math.PI * 8 + (Math.random() - 0.5) * 0.7;
+          const radius = 28 + Math.pow(t, 0.68) * Math.min(width, height) * 0.72;
+          return {
+            x: Math.cos(angle) * radius,
+            y: Math.sin(angle) * radius * 0.36 + (Math.random() - 0.5) * 40,
+            r: Math.random() * 1.5 + 0.45,
+            a: Math.random() * 0.65 + 0.18,
+            color: index % 17 === 0 ? "#d8835f" : "#d8c89a",
+            phase: Math.random() * Math.PI * 2
+          };
+        });
+        this.storyDots = this.stories.map((story, index) => {
+          const angle = index / Math.max(1, this.stories.length) * Math.PI * 2 - Math.PI / 2;
+          const radius = Math.min(width, height) * (story.favorite ? 0.24 : 0.34) + index * 18;
+          return {
+            story,
+            x0: Math.cos(angle) * radius,
+            y0: Math.sin(angle) * radius * 0.48,
+            r: story.favorite ? 7 : 5,
+            color: story.favorite ? "#fff3c7" : "#d8c89a",
+            phase: Math.random() * Math.PI * 2
+          };
+        });
+      },
+      drawCanvas(ctx, now) {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        ctx.clearRect(0, 0, width, height);
+        const bg = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) * 0.7);
+        bg.addColorStop(0, "rgba(24, 26, 48, 0.8)");
+        bg.addColorStop(1, "#07080f");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
+        ctx.save();
+        ctx.translate(width / 2 + this.pointer.x * 80, height / 2 + this.pointer.y * 70);
+        ctx.rotate(now * 0.00001 * this.speed);
+        for (const star of this.stars) {
+          const pulse = 0.76 + Math.sin(now * 0.002 + star.phase) * 0.2;
+          ctx.globalAlpha = star.a * pulse;
+          ctx.fillStyle = star.color;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        for (const dot of this.storyDots) {
+          const pulse = 1 + Math.sin(now * 0.002 + dot.phase) * 0.14;
+          dot.x = width / 2 + this.pointer.x * 80 + dot.x0;
+          dot.y = height / 2 + this.pointer.y * 70 + dot.y0;
+          ctx.globalAlpha = 0.24;
+          ctx.fillStyle = dot.color;
+          ctx.beginPath();
+          ctx.arc(dot.x - width / 2 - this.pointer.x * 80, dot.y - height / 2 - this.pointer.y * 70, dot.r * 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = dot.color;
+          ctx.beginPath();
+          ctx.arc(dot.x - width / 2 - this.pointer.x * 80, dot.y - height / 2 - this.pointer.y * 70, dot.r * pulse, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      },
+      formatDate(value) {
+        const parts = String(value || "").split("-");
+        return parts.length === 3 ? `${parts[0]}.${parts[1]}.${parts[2]}` : value || "";
       }
     };
 
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelector("#addButton")?.addEventListener("click", window.storyCloudFallback.openComposer);
       document.querySelector("#cancelComposer")?.addEventListener("click", window.storyCloudFallback.closeComposer);
+      document.querySelector("#sampleButton")?.addEventListener("click", window.storyCloudFallback.fillSample);
       document.querySelector("#composerModal")?.addEventListener("click", (event) => {
         if (event.target.id === "composerModal") window.storyCloudFallback.closeComposer();
       });
+      window.setTimeout(() => window.storyCloudFallback.startCanvas(), 1800);
     });
   </script>
 
   <script type="module">
     import * as THREE from "three";
+
+    window.storyCloudThreeStarted = true;
 
     const sceneHost = document.querySelector("#scene");
     const drawer = document.querySelector("#drawer");
