@@ -752,7 +752,31 @@
         { type: "horsehead", x: -4800, y: 2300, z: -3600, size: 118, tilt: -0.08, alpha: 0.24 },
         { type: "crab", x: 2300, y: -2700, z: -6900, size: 112, tilt: 0.36, alpha: 0.29 },
         { type: "veil", x: -7000, y: -1700, z: 3100, size: 156, tilt: -0.48, alpha: 0.24 },
-        { type: "helix", x: 6100, y: 2600, z: 3300, size: 132, tilt: 0.04, alpha: 0.31 }
+        { type: "helix", x: 6100, y: 2600, z: 3300, size: 132, tilt: 0.04, alpha: 0.31 },
+        { type: "barred", x: -8200, y: 1500, z: -800, size: 124, tilt: 0.38, alpha: 0.29 },
+        { type: "barred", x: 8400, y: -820, z: -3300, size: 104, tilt: -0.42, alpha: 0.24 },
+        { type: "ring", x: -2600, y: -3100, z: 6600, size: 116, tilt: 0.16, alpha: 0.28 },
+        { type: "ring", x: 7600, y: 320, z: 5200, size: 90, tilt: -0.28, alpha: 0.23 },
+        { type: "globular", x: -9200, y: -600, z: 1800, size: 92, tilt: 0, alpha: 0.34 },
+        { type: "globular", x: 4800, y: 3400, z: -4500, size: 82, tilt: 0, alpha: 0.28 },
+        { type: "bluecluster", x: 1300, y: 3600, z: 7600, size: 108, tilt: 0.22, alpha: 0.3 },
+        { type: "bluecluster", x: -5600, y: -3300, z: -5200, size: 86, tilt: -0.18, alpha: 0.26 },
+        { type: "lagoon", x: 8800, y: 1600, z: 1700, size: 142, tilt: 0.1, alpha: 0.24 },
+        { type: "lagoon", x: -8400, y: 2600, z: 4300, size: 118, tilt: -0.26, alpha: 0.22 },
+        { type: "carina", x: 3600, y: -3600, z: 5200, size: 146, tilt: -0.14, alpha: 0.25 },
+        { type: "carina", x: -1600, y: 4100, z: -7600, size: 126, tilt: 0.32, alpha: 0.22 },
+        { type: "butterfly", x: 8800, y: -2500, z: -1200, size: 104, tilt: 0.5, alpha: 0.26 },
+        { type: "butterfly", x: -7200, y: -2600, z: -5400, size: 94, tilt: -0.36, alpha: 0.22 },
+        { type: "bubble", x: 5200, y: 4200, z: 900, size: 98, tilt: 0.04, alpha: 0.27 },
+        { type: "bubble", x: -300, y: -4300, z: -7800, size: 112, tilt: -0.2, alpha: 0.23 },
+        { type: "cone", x: -9000, y: 600, z: -3100, size: 110, tilt: 0.18, alpha: 0.22 },
+        { type: "cone", x: 2100, y: 4600, z: 6300, size: 96, tilt: -0.14, alpha: 0.21 },
+        { type: "tarantula", x: 9200, y: -300, z: -5700, size: 136, tilt: 0.26, alpha: 0.24 },
+        { type: "tarantula", x: -6400, y: 3600, z: 6900, size: 126, tilt: -0.34, alpha: 0.22 },
+        { type: "dwarf", x: 2800, y: 5200, z: -1800, size: 88, tilt: 0.12, alpha: 0.22 },
+        { type: "dwarf", x: -5200, y: -4200, z: 200, size: 96, tilt: -0.18, alpha: 0.2 },
+        { type: "whirlpool", x: 7600, y: 1800, z: -7200, size: 82, tilt: -0.58, alpha: 0.22 },
+        { type: "sombrero", x: -2400, y: 5200, z: 3600, size: 88, tilt: 0.34, alpha: 0.24 }
       ];
       const coreStory = {
         id: "story-core-star",
@@ -1276,6 +1300,111 @@
           fillSoftEllipse(x, y, size * 0.42, size * 0.36, "#7ab8ff", alpha * 0.42, rot);
           fillSoftEllipse(x, y, size * 0.18, size * 0.14, "#05060b", alpha * 0.76, rot);
           fillSoftEllipse(x, y, size * 0.08, size * 0.06, "#fff3c7", alpha * 0.5, rot);
+        } else if (item.type === "barred") {
+          fillSoftEllipse(x, y, size * 0.38, size * 0.24, "#f4e4ba", alpha * 0.5, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.globalAlpha = alpha * 0.46;
+          ctx.strokeStyle = "#fff3c7";
+          ctx.lineWidth = Math.max(1, size * 0.05);
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.38, 0);
+          ctx.lineTo(size * 0.38, 0);
+          ctx.stroke();
+          ctx.lineWidth = Math.max(1, size * 0.024);
+          for (let arm = 0; arm < 2; arm += 1) {
+            ctx.strokeStyle = arm ? "#f6a6c8" : "#9fdcff";
+            ctx.beginPath();
+            for (let i = 0; i < 28; i += 1) {
+              const t = i / 27;
+              const angle = arm * Math.PI + 0.55 + t * 1.9;
+              const r = size * (0.22 + t * 0.38);
+              const px = Math.cos(angle) * r;
+              const py = Math.sin(angle) * r * 0.74;
+              if (i === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+          }
+        } else if (item.type === "ring") {
+          fillSoftEllipse(x, y, size * 0.48, size * 0.4, "#8fd3ff", alpha * 0.3, rot);
+          ctx.globalCompositeOperation = "source-over";
+          fillSoftEllipse(x, y, size * 0.24, size * 0.2, "#05060b", alpha * 0.72, rot);
+          ctx.globalCompositeOperation = "lighter";
+          fillSoftEllipse(x + size * 0.03, y - size * 0.02, size * 0.1, size * 0.08, "#fff3c7", alpha * 0.52, rot);
+        } else if (item.type === "globular") {
+          fillSoftEllipse(x, y, size * 0.3, size * 0.3, "#fff3c7", alpha * 0.42, rot);
+          ctx.translate(x, y);
+          ctx.globalAlpha = alpha * 0.82;
+          for (let i = 0; i < 22; i += 1) {
+            const angle = i * 2.399;
+            const r = size * 0.34 * Math.sqrt((i + 1) / 22);
+            ctx.fillStyle = i % 5 === 0 ? "#b9dcff" : "#fff3c7";
+            ctx.fillRect(Math.cos(angle) * r, Math.sin(angle) * r, 1.2, 1.2);
+          }
+        } else if (item.type === "bluecluster") {
+          fillSoftEllipse(x, y, size * 0.42, size * 0.28, "#7ab8ff", alpha * 0.22, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          for (let i = 0; i < 18; i += 1) {
+            const angle = i * 2.17;
+            const r = size * (0.08 + (i % 7) * 0.045);
+            ctx.globalAlpha = alpha * (0.38 + (i % 3) * 0.12);
+            ctx.fillStyle = i % 4 === 0 ? "#ffffff" : "#9fdcff";
+            ctx.beginPath();
+            ctx.arc(Math.cos(angle) * r, Math.sin(angle) * r * 0.72, Math.max(0.7, size * 0.011), 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (item.type === "lagoon") {
+          fillSoftEllipse(x - size * 0.12, y, size * 0.4, size * 0.25, "#d8835f", alpha * 0.36, rot);
+          fillSoftEllipse(x + size * 0.16, y + size * 0.04, size * 0.34, size * 0.2, "#f6a6c8", alpha * 0.26, rot);
+          fillSoftEllipse(x, y - size * 0.05, size * 0.22, size * 0.14, "#7bd8a2", alpha * 0.22, rot);
+          strokeNebulaRibbon(x, y, size * 0.72, "rgba(2,3,10,0.7)", alpha * 0.48, rot + 0.16, 4.1);
+        } else if (item.type === "carina") {
+          fillSoftEllipse(x, y, size * 0.56, size * 0.36, "#d8835f", alpha * 0.24, rot);
+          fillSoftEllipse(x - size * 0.16, y - size * 0.04, size * 0.28, size * 0.2, "#f4e4ba", alpha * 0.28, rot);
+          strokeNebulaRibbon(x, y + size * 0.04, size * 0.88, "#8fd3ff", alpha * 0.28, rot - 0.22, 3.3);
+          strokeNebulaRibbon(x, y - size * 0.08, size * 0.74, "#f6a6c8", alpha * 0.25, rot + 0.3, 1.5);
+        } else if (item.type === "butterfly") {
+          fillSoftEllipse(x - size * 0.16, y, size * 0.24, size * 0.34, "#7ab8ff", alpha * 0.34, rot - 0.24);
+          fillSoftEllipse(x + size * 0.16, y, size * 0.24, size * 0.34, "#f6a6c8", alpha * 0.32, rot + 0.24);
+          fillSoftEllipse(x, y, size * 0.08, size * 0.18, "#fff3c7", alpha * 0.46, rot);
+        } else if (item.type === "bubble") {
+          fillSoftEllipse(x, y, size * 0.4, size * 0.34, "#8fd3ff", alpha * 0.2, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.globalAlpha = alpha * 0.42;
+          ctx.strokeStyle = "#9fdcff";
+          ctx.lineWidth = Math.max(1, size * 0.026);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, size * 0.34, size * 0.26, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = alpha * 0.45;
+          ctx.fillStyle = "#fff3c7";
+          ctx.fillRect(size * 0.08, -size * 0.04, 1.6, 1.6);
+        } else if (item.type === "cone") {
+          fillSoftEllipse(x, y, size * 0.44, size * 0.32, "#c94c3f", alpha * 0.22, rot);
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.globalAlpha = alpha * 0.58;
+          ctx.fillStyle = "rgba(2,3,9,0.88)";
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.06, size * 0.28);
+          ctx.lineTo(size * 0.14, size * 0.24);
+          ctx.lineTo(size * 0.02, -size * 0.32);
+          ctx.closePath();
+          ctx.fill();
+        } else if (item.type === "tarantula") {
+          fillSoftEllipse(x, y, size * 0.46, size * 0.34, "#f6a6c8", alpha * 0.28, rot);
+          fillSoftEllipse(x - size * 0.08, y + size * 0.02, size * 0.22, size * 0.18, "#8fd3ff", alpha * 0.24, rot);
+          for (let i = 0; i < 6; i += 1) {
+            strokeNebulaRibbon(x, y, size * (0.48 + i * 0.05), i % 2 ? "#d8835f" : "#f6a6c8", alpha * 0.22, rot + i * 0.52, i * 0.7);
+          }
+        } else if (item.type === "dwarf") {
+          fillSoftEllipse(x, y, size * 0.42, size * 0.18, "#b9dcff", alpha * 0.26, rot);
+          fillSoftEllipse(x - size * 0.08, y, size * 0.16, size * 0.08, "#fff3c7", alpha * 0.36, rot);
+          fillSoftEllipse(x + size * 0.16, y + size * 0.03, size * 0.18, size * 0.09, "#9fdcff", alpha * 0.26, rot);
         }
         ctx.restore();
       }
